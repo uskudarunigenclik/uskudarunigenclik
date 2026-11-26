@@ -881,6 +881,10 @@
             <div>
               <label for="mc-name" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">Ad Soyad *</label>
               <input id="mc-name" type="text" required maxlength="60" placeholder="Örn. Ayşe Yılmaz" class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-turq-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-turq-400" />
+              <div id="mc-board-badge" class="hidden mt-2 px-3 py-1.5 rounded-xl bg-zinc-950 border border-amber-400/60 text-amber-300 text-[11px] font-bold flex items-center gap-1.5 shadow-xs">
+                <span>★</span>
+                <span id="mc-board-badge-text">Yönetim Kurulu Üyesi Tanındı — Siyah &amp; Altın VIP Kart Açıldı!</span>
+              </div>
             </div>
 
             <div>
@@ -919,10 +923,11 @@
 
             <div>
               <span class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-2">Kart Teması</span>
-              <div id="mc-theme-selector" class="grid grid-cols-3 gap-2">
-                <button type="button" data-card-theme="turq" class="mc-theme-btn px-3 py-2 rounded-xl text-xs font-bold border-2 border-turq-500 bg-turq-50 dark:bg-turq-900/40 text-turq-800 dark:text-turq-200 transition">Turkuaz</button>
-                <button type="button" data-card-theme="navy" class="mc-theme-btn px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-turq-300 transition">Gece Lacivert</button>
-                <button type="button" data-card-theme="gold" class="mc-theme-btn px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-turq-300 transition">1.'lik Özel</button>
+              <div id="mc-theme-selector" class="flex flex-wrap gap-2">
+                <button type="button" data-card-theme="turq" class="mc-theme-btn flex-1 min-w-[92px] px-3 py-2 rounded-xl text-xs font-bold border-2 border-turq-500 bg-turq-50 dark:bg-turq-900/40 text-turq-800 dark:text-turq-200 transition">Turkuaz</button>
+                <button type="button" data-card-theme="navy" class="mc-theme-btn flex-1 min-w-[92px] px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-turq-300 transition">Gece Lacivert</button>
+                <button type="button" data-card-theme="gold" class="mc-theme-btn flex-1 min-w-[92px] px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-turq-300 transition">1.'lik Özel</button>
+                <button id="mc-board-theme-btn" type="button" data-card-theme="board_black_gold" class="mc-theme-btn hidden flex-1 min-w-[130px] px-3 py-2 rounded-xl text-xs font-bold border-2 border-amber-400 bg-zinc-950 text-amber-300 shadow-sm transition">★ Yönetim (Siyah-Altın)</button>
               </div>
             </div>
 
@@ -958,14 +963,14 @@
                     <p class="text-sm sm:text-base font-extrabold tracking-tight truncate">Gençlik Kulübü</p>
                   </div>
                 </div>
-                <span class="px-2.5 py-1 rounded-full bg-white/15 border border-white/25 text-[10px] font-bold uppercase tracking-wider backdrop-blur-xs shrink-0">
+                <span id="mc-preview-pill" class="px-2.5 py-1 rounded-full bg-white/15 border border-white/25 text-[10px] font-bold uppercase tracking-wider backdrop-blur-xs shrink-0">
                   2026–2027 Üye
                 </span>
               </div>
 
               <!-- Orta: Üye Bilgileri -->
               <div class="relative z-10 my-auto py-2 space-y-1.5">
-                <p class="text-[10px] uppercase tracking-widest text-white/70 font-semibold">Dijital Üye Kartı</p>
+                <p id="mc-preview-subtitle" class="text-[10px] uppercase tracking-widest text-white/70 font-semibold">Dijital Üye Kartı</p>
                 <h3 id="mc-preview-name" class="text-xl sm:text-2xl font-extrabold tracking-tight leading-tight truncate">Ad Soyad</h3>
                 <p id="mc-preview-faculty" class="text-xs sm:text-sm text-white/90 font-medium truncate">Fakülte / Bölüm</p>
                 <div class="flex flex-wrap items-center gap-2 pt-1">
@@ -1022,6 +1027,10 @@
 
           <!-- Açık Durum Aksiyonları -->
           <div id="admin-actions-bar" class="hidden flex flex-wrap items-center gap-2">
+            <button id="admin-refresh-btn" type="button" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-turq-50 dark:bg-slate-800 text-turq-700 dark:text-turq-300 border border-turq-200 dark:border-slate-700 text-xs font-bold hover:bg-turq-100 dark:hover:bg-slate-700 transition">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>Tablodan Yenile</span>
+            </button>
             <button id="export-csv-btn" type="button" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition">
               <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
               <span>Excel (.csv) İndir</span>
@@ -2186,21 +2195,71 @@
     let selectedCardTheme = 'turq';
     let activeGeneratedMember = null;
     let adminUnlocked = false;
+    let remoteMembersCache = null;
+    let isFetchingRemoteMembers = false;
+
+    let matchedBoardMember = null;
+    let userManuallyPickedTheme = false;
 
     const CARD_THEMES = {
       turq: {
         css: 'linear-gradient(135deg, #06b6d4 0%, #0e7490 55%, #164e63 100%)',
-        c1: '#06b6d4', c2: '#0e7490', c3: '#164e63', accent: '#cffafe'
+        c1: '#06b6d4', c2: '#0e7490', c3: '#164e63', accent: '#cffafe',
+        textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.90)', textMuted: 'rgba(255,255,255,0.72)',
+        wmColor: 'rgba(255, 255, 255, 0.11)', borderColor: null, pillBg: 'rgba(255,255,255,0.16)', pillBorder: 'rgba(255,255,255,0.32)'
       },
       navy: {
         css: 'linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #0e7490 100%)',
-        c1: '#0f172a', c2: '#1e293b', c3: '#0e7490', accent: '#67e8f9'
+        c1: '#0f172a', c2: '#1e293b', c3: '#0e7490', accent: '#67e8f9',
+        textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.90)', textMuted: 'rgba(255,255,255,0.72)',
+        wmColor: 'rgba(255, 255, 255, 0.11)', borderColor: null, pillBg: 'rgba(255,255,255,0.16)', pillBorder: 'rgba(255,255,255,0.32)'
       },
       gold: {
         css: 'linear-gradient(135deg, #b45309 0%, #d97706 48%, #0f172a 100%)',
-        c1: '#b45309', c2: '#d97706', c3: '#0f172a', accent: '#fef3c7'
+        c1: '#b45309', c2: '#d97706', c3: '#0f172a', accent: '#fef3c7',
+        textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.90)', textMuted: 'rgba(255,255,255,0.72)',
+        wmColor: 'rgba(255, 255, 255, 0.11)', borderColor: null, pillBg: 'rgba(255,255,255,0.16)', pillBorder: 'rgba(255,255,255,0.32)'
+      },
+      board_black_gold: {
+        css: 'linear-gradient(135deg, #09090b 0%, #18181b 52%, #050507 100%)',
+        c1: '#09090b', c2: '#18181b', c3: '#050507', accent: '#f5d061',
+        textPrimary: '#f7d774', textSecondary: '#eab308', textMuted: '#ca8a04',
+        wmColor: 'rgba(245, 208, 97, 0.13)', borderColor: '#d4af37', pillBg: 'rgba(212,175,55,0.18)', pillBorder: 'rgba(245,208,97,0.55)'
       }
     };
+
+    function normalizeTrName(str) {
+      return String(str || '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .toLocaleLowerCase('tr-TR')
+        .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
+        .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c');
+    }
+
+    function findBoardMemberByName(rawName) {
+      const target = normalizeTrName(rawName);
+      if (!target || target.length < 3) return null;
+      return TEAM_44.find(m => normalizeTrName(m.name) === target) || null;
+    }
+
+    function syncThemeButtonsUI() {
+      document.querySelectorAll('.mc-theme-btn').forEach(b => {
+        const t = b.dataset.cardTheme;
+        if (t === 'board_black_gold') {
+          if (selectedCardTheme === 'board_black_gold') {
+            b.className = 'mc-theme-btn flex-1 min-w-[130px] px-3 py-2 rounded-xl text-xs font-bold border-2 border-amber-400 bg-zinc-950 text-amber-300 shadow-sm ring-2 ring-amber-400/40 transition';
+          } else {
+            b.className = 'mc-theme-btn flex-1 min-w-[130px] px-3 py-2 rounded-xl text-xs font-bold border border-amber-500/60 bg-zinc-950/90 text-amber-300/80 hover:border-amber-400 transition';
+          }
+          if (!matchedBoardMember) b.classList.add('hidden');
+        } else if (t === selectedCardTheme) {
+          b.className = 'mc-theme-btn flex-1 min-w-[92px] px-3 py-2 rounded-xl text-xs font-bold border-2 border-turq-500 bg-turq-50 dark:bg-turq-900/40 text-turq-800 dark:text-turq-200 transition';
+        } else {
+          b.className = 'mc-theme-btn flex-1 min-w-[92px] px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-turq-300 transition';
+        }
+      });
+    }
 
     function isValidUskudarEmail(email) {
       const cleaned = String(email || '').trim().toLowerCase();
@@ -2255,9 +2314,54 @@
         ).join('');
       }
 
+      const rawName = (document.getElementById('mc-name')?.value || '').trim();
+      const prevMatched = matchedBoardMember;
+      matchedBoardMember = findBoardMemberByName(rawName);
+
+      const boardBadge = document.getElementById('mc-board-badge');
+      const boardBadgeText = document.getElementById('mc-board-badge-text');
+      const boardBtn = document.getElementById('mc-board-theme-btn');
+
+      if (matchedBoardMember) {
+        if (boardBadge) boardBadge.classList.remove('hidden');
+        if (boardBadgeText) boardBadgeText.textContent = 'Yönetim Kurulu (' + matchedBoardMember.role + ') — Siyah & Altın VIP Kart açıldı!';
+        if (boardBtn) boardBtn.classList.remove('hidden');
+        if (!prevMatched && !userManuallyPickedTheme) {
+          selectedCardTheme = 'board_black_gold';
+        }
+      } else {
+        if (boardBadge) boardBadge.classList.add('hidden');
+        if (boardBtn) boardBtn.classList.add('hidden');
+        if (selectedCardTheme === 'board_black_gold') {
+          selectedCardTheme = 'turq';
+        }
+        userManuallyPickedTheme = false;
+      }
+      syncThemeButtonsUI();
+
       const cardEl = document.getElementById('member-card-3d');
       const theme = CARD_THEMES[selectedCardTheme] || CARD_THEMES.turq;
+      const isBoardVip = selectedCardTheme === 'board_black_gold';
       cardEl.style.background = theme.css;
+      cardEl.style.color = theme.textPrimary;
+      cardEl.style.border = isBoardVip ? '2px solid rgba(245, 208, 97, 0.65)' : 'none';
+
+      const pillEl = document.getElementById('mc-preview-pill');
+      const subEl = document.getElementById('mc-preview-subtitle');
+      const wmColorEl = document.getElementById('mc-preview-watermark');
+      if (pillEl) {
+        pillEl.textContent = isBoardVip ? '★ YÖNETİM KURULU' : '2026–2027 Üye';
+        pillEl.style.background = theme.pillBg;
+        pillEl.style.borderColor = theme.pillBorder;
+        pillEl.style.color = isBoardVip ? '#fde68a' : '#ffffff';
+      }
+      if (subEl) {
+        subEl.textContent = isBoardVip ? (matchedBoardMember ? matchedBoardMember.role : 'Yönetim Kurulu Özel Kartı') : 'Dijital Üye Kartı';
+        subEl.style.color = isBoardVip ? '#eab308' : 'rgba(255,255,255,0.72)';
+      }
+      if (wmColorEl) {
+        wmColorEl.style.color = isBoardVip ? '#f5d061' : '#ffffff';
+      }
 
       // E-posta anlık doğrulama rozeti
       const rawEmail = (document.getElementById('mc-email')?.value || '').trim();
@@ -2277,10 +2381,40 @@
       }
     }
 
-    function renderAdminMembersTable() {
-      const records = loadMemberRecords();
+    function getActiveAdminRecords() {
+      return Array.isArray(remoteMembersCache) ? remoteMembersCache : loadMemberRecords();
+    }
+
+    async function fetchRemoteMembers(silent = false) {
+      if (!MEMBER_SHEETS_WEBHOOK_URL) {
+        renderAdminMembersTable();
+        return;
+      }
+      isFetchingRemoteMembers = true;
       const badge = document.getElementById('admin-record-badge');
-      if (badge) badge.textContent = records.length + ' kayıt';
+      if (badge) badge.textContent = 'Yükleniyor...';
+      try {
+        const url = MEMBER_SHEETS_WEBHOOK_URL + '?pin=' + encodeURIComponent(MEMBER_ADMIN_PIN) + '&t=' + Date.now();
+        const res = await fetch(url, { method: 'GET', redirect: 'follow' });
+        const data = await res.json();
+        if (data && data.ok && Array.isArray(data.members)) {
+          remoteMembersCache = data.members;
+          if (!silent) showToast('Google E-Tablo verileri güncellendi (' + data.members.length + ' kayıt).');
+        } else if (!silent) {
+          showToast('Merkezi liste okunamadı; cihazdaki kayıtlar gösteriliyor.');
+        }
+      } catch (err) {
+        if (!silent) showToast('Google E-Tablo okunamadı (Apps Script doGet güncel mi kontrol edin).');
+      } finally {
+        isFetchingRemoteMembers = false;
+        renderAdminMembersTable();
+      }
+    }
+
+    function renderAdminMembersTable() {
+      const records = getActiveAdminRecords();
+      const badge = document.getElementById('admin-record-badge');
+      if (badge) badge.textContent = isFetchingRemoteMembers ? 'Yükleniyor...' : (records.length + ' kayıt');
 
       if (!adminUnlocked) return;
 
@@ -2327,7 +2461,7 @@
     }
 
     function exportMembersToExcelCsv() {
-      const records = loadMemberRecords();
+      const records = getActiveAdminRecords();
       if (!records.length) {
         showToast('Dışa aktarılacak kayıt bulunamadı.');
         return;
@@ -2410,37 +2544,50 @@
           ctx.stroke();
         }
 
+        const isBoardVip = member.theme === 'board_black_gold';
+        const boardMatch = findBoardMemberByName(member.name);
+
+        // VIP Altın çerçeve
+        if (isBoardVip) {
+          drawRoundedRect(8, 8, 1184, 724, 38);
+          ctx.strokeStyle = 'rgba(245, 208, 97, 0.65)';
+          ctx.lineWidth = 4;
+          ctx.stroke();
+        }
+
         // Üst Başlık
-        ctx.fillStyle = 'rgba(255,255,255,0.82)';
+        ctx.fillStyle = isBoardVip ? '#eab308' : 'rgba(255,255,255,0.82)';
         ctx.font = '700 22px Inter, Arial, sans-serif';
         ctx.fillText('ÜSKÜDAR ÜNİVERSİTESİ', 194, 98);
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = theme.textPrimary;
         ctx.font = '800 36px Inter, Arial, sans-serif';
         ctx.fillText('Gençlik Kulübü', 194, 140);
 
         // Sağ Üst Rozet
-        drawRoundedRect(905, 76, 235, 54, 27);
-        ctx.fillStyle = 'rgba(255,255,255,0.16)';
+        const badgeW = isBoardVip ? 285 : 235;
+        const badgeX = 1140 - badgeW;
+        drawRoundedRect(badgeX, 76, badgeW, 54, 27);
+        ctx.fillStyle = theme.pillBg;
         ctx.fill();
-        ctx.strokeStyle = 'rgba(255,255,255,0.32)';
+        ctx.strokeStyle = theme.pillBorder;
         ctx.lineWidth = 2;
         ctx.stroke();
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = isBoardVip ? '#fde68a' : '#ffffff';
         ctx.font = '700 20px Inter, Arial, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('2026–2027 ÜYE', 1022, 110);
+        ctx.fillText(isBoardVip ? '★ YÖNETİM KURULU' : '2026–2027 ÜYE', badgeX + badgeW / 2, 110);
         ctx.textAlign = 'left';
 
         // Orta Bilgiler
-        ctx.fillStyle = theme.accent;
+        ctx.fillStyle = isBoardVip ? '#eab308' : theme.accent;
         ctx.font = '700 20px Inter, Arial, sans-serif';
-        ctx.fillText('DİJİTAL ÜYE KARTI', 68, 285);
+        ctx.fillText(isBoardVip ? (boardMatch ? boardMatch.role.toLocaleUpperCase('tr-TR') : 'YÖNETİM KURULU ÖZEL KARTI') : 'DİJİTAL ÜYE KARTI', 68, 285);
 
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = theme.textPrimary;
         ctx.font = '800 58px Inter, Arial, sans-serif';
         ctx.fillText(member.name.slice(0, 32), 68, 360);
 
-        ctx.fillStyle = 'rgba(255,255,255,0.92)';
+        ctx.fillStyle = theme.textSecondary;
         ctx.font = '500 30px Inter, Arial, sans-serif';
         ctx.fillText(member.faculty.slice(0, 48), 68, 415);
 
@@ -2448,18 +2595,23 @@
         ctx.font = '700 24px Inter, Arial, sans-serif';
         const deptW = Math.min(ctx.measureText(member.dept).width + 48, 420);
         drawRoundedRect(68, 448, deptW, 50, 14);
-        ctx.fillStyle = 'rgba(255,255,255,0.20)';
+        ctx.fillStyle = isBoardVip ? 'rgba(212, 175, 55, 0.20)' : 'rgba(255,255,255,0.20)';
         ctx.fill();
-        ctx.fillStyle = '#ffffff';
+        if (isBoardVip) {
+          ctx.strokeStyle = 'rgba(245, 208, 97, 0.45)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+        ctx.fillStyle = theme.textPrimary;
         ctx.fillText(member.dept, 92, 481);
 
         // E-posta
-        ctx.fillStyle = 'rgba(255,255,255,0.88)';
+        ctx.fillStyle = theme.textSecondary;
         ctx.font = '600 24px Inter, Arial, sans-serif';
         ctx.fillText(member.email, 68 + deptW + 24, 481);
 
         // Alt ayırıcı çizgi
-        ctx.strokeStyle = 'rgba(255,255,255,0.24)';
+        ctx.strokeStyle = isBoardVip ? 'rgba(245, 208, 97, 0.30)' : 'rgba(255,255,255,0.24)';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(68, 575);
@@ -2467,18 +2619,18 @@
         ctx.stroke();
 
         // Alt Meta
-        ctx.fillStyle = 'rgba(255,255,255,0.68)';
+        ctx.fillStyle = theme.textMuted;
         ctx.font = '700 18px Inter, Arial, sans-serif';
         ctx.fillText('ÜYE KODU', 68, 622);
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = theme.textPrimary;
         ctx.font = '700 30px monospace';
         ctx.fillText(member.code, 68, 665);
 
         ctx.textAlign = 'right';
-        ctx.fillStyle = 'rgba(255,255,255,0.68)';
+        ctx.fillStyle = theme.textMuted;
         ctx.font = '700 18px Inter, Arial, sans-serif';
         ctx.fillText('ÖĞRENCİ / SİCİL NO', 1132, 622);
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = theme.textPrimary;
         ctx.font = '700 30px monospace';
         ctx.fillText(member.studentNo || '—', 1132, 665);
         ctx.textAlign = 'left';
@@ -2488,7 +2640,7 @@
         ctx.save();
         ctx.translate(600, 370);
         ctx.rotate(-14 * Math.PI / 180);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.11)';
+        ctx.fillStyle = theme.wmColor || 'rgba(255, 255, 255, 0.11)';
         ctx.font = '800 32px monospace';
         ctx.textAlign = 'center';
         const wmRow = Array(6).fill(wmLabel).join('   •   ');
@@ -2800,11 +2952,10 @@
       document.getElementById('mc-theme-selector').addEventListener('click', (e) => {
         const btn = e.target.closest('.mc-theme-btn');
         if (!btn) return;
+        if (btn.dataset.cardTheme === 'board_black_gold' && !matchedBoardMember) return;
         selectedCardTheme = btn.dataset.cardTheme;
-        document.querySelectorAll('.mc-theme-btn').forEach(b => {
-          b.className = 'mc-theme-btn px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-turq-300 transition';
-        });
-        btn.className = 'mc-theme-btn px-3 py-2 rounded-xl text-xs font-bold border-2 border-turq-500 bg-turq-50 dark:bg-turq-900/40 text-turq-800 dark:text-turq-200 transition';
+        userManuallyPickedTheme = true;
+        syncThemeButtonsUI();
         updateCardLivePreview();
       });
 
@@ -2886,6 +3037,8 @@
               redirect: 'follow',
               headers: { 'Content-Type': 'text/plain;charset=utf-8' },
               body: JSON.stringify(memberObj)
+            }).then(() => {
+              if (adminUnlocked) setTimeout(() => fetchRemoteMembers(true), 1200);
             }).catch(() => {});
           } catch (err) {}
         }
@@ -2910,7 +3063,12 @@
         document.getElementById('admin-panel-body').classList.remove('hidden');
         renderAdminMembersTable();
         if (window.lucide) window.lucide.createIcons();
-        showToast('Yönetici üye listesi açıldı.');
+        showToast('Yönetici üye listesi açıldı, Google E-Tablo yükleniyor...');
+        fetchRemoteMembers(false);
+      });
+
+      document.getElementById('admin-refresh-btn').addEventListener('click', () => {
+        fetchRemoteMembers(false);
       });
 
       document.getElementById('admin-lock-btn').addEventListener('click', () => {
