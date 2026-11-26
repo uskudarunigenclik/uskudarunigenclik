@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="tr" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Üsküdar Üniversitesi Gençlik Kulübü</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            turq: {
+              50: '#ecfeff',
+              100: '#cffafe',
+              200: '#a5f3fc',
+              300: '#67e8f9',
+              400: '#22d3ee',
+              500: '#06b6d4',
+              600: '#0891b2',
+              700: '#0e7490',
+              800: '#155e75',
+              900: '#164e63',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="antialiased bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200 selection:bg-turq-200 selection:text-turq-900">
+
+  <!-- Animasyonlu Açılış Ekranı (Splash Screen — aktif tema arka planıyla uyumlu) -->
+  <div id="splash-screen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white dark:bg-slate-950 transition-colors">
+    <div class="splash-logo-anim flex flex-col items-center text-center px-6">
+      <div class="relative">
+        <div class="absolute -inset-3 rounded-full bg-turq-400/25 blur-xl animate-pulse"></div>
+        <img
+          src="images/img_club_logo.jpg"
+          alt="Üsküdar Üniversitesi Gençlik Kulübü Logosu"
+          class="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full object-cover shadow-2xl border-4 border-white dark:border-slate-900 bg-white"
+        />
+      </div>
+      <h1 class="mt-6 text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+        Üsküdar Üniversitesi <span class="text-turq-600 dark:text-turq-400">Gençlik Kulübü</span>
+      </h1>
+      <p class="mt-1.5 text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
+        Fikir ve Eylemin Birleştiği Yer · 2024
+      </p>
+      <div class="mt-6 w-48 h-1.5 rounded-full bg-turq-100 dark:bg-slate-800 overflow-hidden">
+        <div class="h-full rounded-full turq-gradient splash-bar-anim"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Navbar -->
+  <header class="sticky top-0 z-40 glass-nav border-b border-turq-100 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 gap-2">
+        <button type="button" data-page-target="anasayfa" class="nav-page-btn flex items-center gap-3 group text-left">
+          <img src="images/img_club_logo.jpg" alt="Gençlik Kulübü Logo" class="w-10 h-10 rounded-full object-cover border-2 border-turq-400 shadow-xs bg-white shrink-0" />
+          <div class="leading-tight">
+            <span class="block font-bold text-slate-900 dark:text-white text-sm sm:text-base group-hover:text-turq-600 dark:group-hover:text-turq-400 transition">Gençlik Kulübü</span>
+            <span class="block text-[11px] font-medium text-turq-600 dark:text-turq-400">Üsküdar Üniversitesi</span>
+          </div>
+        </button>
+
+        <!-- Desktop Navigation -->
+        <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
+          <button type="button" data-page-target="anasayfa" class="nav-page-btn px-3 py-2 rounded-lg transition">Ana Sayfa</button>
+          <button type="button" data-page-target="etkinlikler" class="nav-page-btn px-3 py-2 rounded-lg transition">Etkinlikler</button>
+          <button type="button" data-page-target="haberler" class="nav-page-btn px-3 py-2 rounded-lg transition">Haberler</button>
+          <button type="button" data-page-target="duyurular" class="nav-page-btn px-3 py-2 rounded-lg transition">Duyurular</button>
+          <button type="button" data-page-target="kadromuz" class="nav-page-btn px-3 py-2 rounded-lg transition">Kadromuz</button>
+        </nav>
+
+        <!-- Right Controls: Join + Theme Toggle (En Sağ Üstte) + Mobile Menu -->
+        <div class="flex items-center gap-2">
+          <a id="open-join-btn" href="https://www.youtube.com/watch?v=rTLNyncgA7Y" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl turq-gradient text-white text-xs font-semibold shadow-sm hover:opacity-95 transition">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            <span>Kulübe Katıl</span>
+          </a>
+
+          <!-- Siyah / Beyaz Tema Değiştirme Tuşu -->
+          <button
+            id="theme-toggle-btn"
+            type="button"
+            aria-label="Temayı Değiştir"
+            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-turq-200 dark:border-slate-700 bg-turq-50/70 dark:bg-slate-800 text-slate-800 dark:text-turq-300 text-xs font-semibold hover:bg-turq-100 dark:hover:bg-slate-700 transition"
+          >
+            <i id="theme-icon-sun" data-lucide="sun" class="w-4 h-4 hidden"></i>
+            <i id="theme-icon-moon" data-lucide="moon" class="w-4 h-4"></i>
+            <span id="theme-label" class="hidden lg:inline">Koyu Tema</span>
+          </button>
+
+          <button id="mobile-menu-btn" type="button" aria-label="Menüyü Aç" class="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-turq-50 dark:hover:bg-slate-800">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div id="mobile-menu" class="hidden md:hidden pb-4 pt-2 border-t border-turq-100 dark:border-slate-800">
+        <div class="flex flex-col gap-1 text-sm font-medium">
+          <button type="button" data-page-target="anasayfa" class="nav-page-btn mobile-nav-link text-left px-3 py-2 rounded-lg">Ana Sayfa</button>
+          <button type="button" data-page-target="etkinlikler" class="nav-page-btn mobile-nav-link text-left px-3 py-2 rounded-lg">Etkinlikler</button>
+          <button type="button" data-page-target="haberler" class="nav-page-btn mobile-nav-link text-left px-3 py-2 rounded-lg">Haberler</button>
+          <button type="button" data-page-target="duyurular" class="nav-page-btn mobile-nav-link text-left px-3 py-2 rounded-lg">Duyurular</button>
+          <button type="button" data-page-target="kadromuz" class="nav-page-btn mobile-nav-link text-left px-3 py-2 rounded-lg">Kadromuz</button>
+          <a id="open-join-mobile-btn" href="https://www.youtube.com/watch?v=rTLNyncgA7Y" target="_blank" rel="noopener noreferrer" class="mt-2 px-3 py-2 rounded-xl turq-gradient text-white text-xs font-semibold text-center block">Kulübe Katıl</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== SAYFA 1: ANA SAYFA ==================== -->
+  <main id="page-anasayfa" class="page-view">
+    <!-- Hero -->
+    <section class="turq-soft-bg pt-8 pb-14 sm:pt-12 sm:pb-20 border-b border-turq-100 dark:border-slate-800">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+          <div class="lg:col-span-6 space-y-6">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-turq-200 dark:border-turq-800 text-turq-700 dark:text-turq-300 text-xs font-semibold shadow-xs">
+              <i data-lucide="trophy" class="w-3.5 h-3.5 text-turq-600 dark:text-turq-400"></i>
+              <span>2026–2027 Öğrenci Kulüpleri Ödül Sıralaması 1.'si</span>
+            </div>
+
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+              Üsküdar Üniversitesi <span class="text-turq-600 dark:text-turq-400">Gençlik Kulübü</span>
+            </h1>
+
+            <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+              Sağlık, Kültür ve Spor (SKS) Daire Başkanlığı bünyesinde; akademikten spora, kültürden sanata tüm branşlarda
+              <strong class="text-slate-800 dark:text-white">25.000 öğrenciyi</strong> kucaklayan, öğrenci dostu ve ücretsiz etkinliklerle kampüse enerji katan çatı topluluk.
+            </p>
+
+            <div class="flex flex-wrap gap-3">
+              <button type="button" data-page-target="etkinlikler" class="nav-page-btn inline-flex items-center gap-2 px-5 py-3 rounded-xl turq-gradient text-white font-semibold text-sm shadow-md shadow-turq-500/20 hover:opacity-95 transition">
+                <i data-lucide="calendar" class="w-4 h-4"></i>
+                <span>48 Etkinliği Keşfet</span>
+              </button>
+              <button type="button" data-page-target="kadromuz" class="nav-page-btn inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white dark:bg-slate-900 border border-turq-200 dark:border-slate-700 text-turq-800 dark:text-turq-300 font-semibold text-sm hover:bg-turq-50 dark:hover:bg-slate-800 transition">
+                <i data-lucide="users" class="w-4 h-4"></i>
+                <span>Kadromuz</span>
+              </button>
+              <button type="button" data-page-target="haberler" class="nav-page-btn inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white dark:bg-slate-900 border border-turq-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm hover:bg-turq-50 dark:hover:bg-slate-800 transition">
+                <i data-lucide="newspaper" class="w-4 h-4"></i>
+                <span>Haberler</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6">
+            <div class="relative rounded-3xl overflow-hidden shadow-xl border-4 border-white dark:border-slate-800 bg-white dark:bg-slate-900">
+              <img
+                src="images/img_hero_fidan.jpg"
+                alt="Üsküdar Üniversitesi Gençlik Kulübü toplu etkinlik fotoğrafı"
+                class="w-full h-auto object-cover aspect-video"
+              />
+              <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-900/80 via-slate-900/35 to-transparent p-5 text-white">
+                <p class="text-xs font-semibold uppercase tracking-wider text-turq-200">Gençfest · Boğaz Buluşmaları · Gençlik Kupası</p>
+                <p class="text-sm sm:text-base font-bold mt-0.5">Sivil Toplumun Genç ve Dinamik Sesi</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI Strip -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-10">
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-turq-100 dark:border-slate-800 shadow-xs">
+            <div class="flex items-center justify-between text-turq-600 dark:text-turq-400 mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wide">Aktif Üye</span>
+              <i data-lucide="user-check" class="w-4 h-4"></i>
+            </div>
+            <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">3.000+</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Üniversitenin en büyük kulübü</p>
+          </div>
+
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-turq-100 dark:border-slate-800 shadow-xs">
+            <div class="flex items-center justify-between text-turq-600 dark:text-turq-400 mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wide">Erişim Ağı</span>
+              <i data-lucide="radio" class="w-4 h-4"></i>
+            </div>
+            <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">15.000+</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Sınıf temsilciliği &amp; WhatsApp ağı</p>
+          </div>
+
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-turq-100 dark:border-slate-800 shadow-xs">
+            <div class="flex items-center justify-between text-turq-600 dark:text-turq-400 mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wide">Yönetim Ekibi</span>
+              <i data-lucide="layers" class="w-4 h-4"></i>
+            </div>
+            <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">44 Kişi</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Güncel yönetim ekibi &amp; departmanlar</p>
+          </div>
+
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-turq-100 dark:border-slate-800 shadow-xs">
+            <div class="flex items-center justify-between text-turq-600 dark:text-turq-400 mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wide">ÜNİDES Hibe</span>
+              <i data-lucide="award" class="w-4 h-4"></i>
+            </div>
+            <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">50.000 TL</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">GSB Gençlik Kupası proje desteği</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Biz Kimiz · Vizyon · Misyon · Değerlerimiz -->
+    <section class="py-14 sm:py-20 bg-white dark:bg-slate-950">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <div class="max-w-4xl">
+          <span class="text-xs font-bold uppercase tracking-widest text-turq-600 dark:text-turq-400">Biz Kimiz?</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">Fikir ve Eylemin Birleştiği Yer</h2>
+          <p class="text-slate-600 dark:text-slate-300 mt-3 leading-relaxed">
+            Üsküdar Üniversitesi Gençliği, öğrencilerin akademik ve sosyal hayatlarını zenginleştiren, onların kişisel gelişimlerine katkı sağlayan ve toplumsal değerlere duyarlı bireyler yetiştirmeyi hedefleyen dinamik bir topluluktur. Birlik ve dayanışmayı esas alır, her bireyin farklılıklarına saygı gösterir, kapsayıcı bir ortam yaratır.
+          </p>
+        </div>
+
+        <!-- Vizyonumuz & Misyonumuz -->
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="rounded-3xl border-2 border-turq-200 dark:border-turq-800 bg-turq-50/50 dark:bg-slate-900 p-6 sm:p-8 space-y-3 shadow-xs">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white dark:bg-slate-800 border border-turq-200 dark:border-slate-700 text-turq-700 dark:text-turq-300 text-xs font-bold">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+              <span>VİZYONUMUZ</span>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-900 dark:text-white">Hayatın Her Alanında Lider Gençler</h3>
+            <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              Vizyonumuz, öğrencilerimize sadece bilgi ve beceri kazandırmak değil, aynı zamanda onları hayatın her alanında lider olmaya hazırlamaktır. Bu amaçla, öğrencilerimizin kişisel yeteneklerini keşfetmelerine ve toplum yararına kullanmalarına imkan tanıyan bir platform sunuyoruz. Çeşitli etkinlikler ve projelerle öğrencilerimizin sosyal ağlarını genişletmelerine, yeni deneyimler edinmelerine ve yaşam boyu öğrenmenin değerini kavramalarına yardımcı oluyoruz.
+            </p>
+          </div>
+
+          <div class="rounded-3xl border-2 border-turq-200 dark:border-turq-800 bg-turq-50/50 dark:bg-slate-900 p-6 sm:p-8 space-y-3 shadow-xs">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white dark:bg-slate-800 border border-turq-200 dark:border-slate-700 text-turq-700 dark:text-turq-300 text-xs font-bold">
+              <i data-lucide="target" class="w-4 h-4"></i>
+              <span>MİSYONUMUZ</span>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-900 dark:text-white">Yetenekleri Keşfeden, Geleceğe Hazırlayan Ortam</h3>
+            <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              Öğrencilerimizin her birinin benzersiz yeteneklerini keşfetmelerini ve bu yetenekleri toplum yararına kullanmalarını sağlayacak bir ortam yaratmayı hedefliyoruz. Çeşitli sosyal, kültürel ve eğitici etkinlikler düzenleyerek öğrencilerimizin yaşam kalitesini artırıyor, onları geleceğe hazırlıyor ve üniversite yıllarını unutulmaz kılıyoruz.
+            </p>
+          </div>
+        </div>
+
+        <!-- 7 Temel Değerimiz -->
+        <div>
+          <div class="mb-5">
+            <span class="text-xs font-bold uppercase tracking-widest text-turq-600 dark:text-turq-400">İlkelerimiz</span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-1">Temel Değerlerimiz</h3>
+          </div>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="rounded-2xl border border-turq-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-2 hover:border-turq-300 transition">
+              <div class="w-9 h-9 rounded-lg bg-turq-50 dark:bg-turq-900/50 text-turq-600 dark:text-turq-400 flex items-center justify-center"><i data-lucide="sparkles" class="w-4 h-4"></i></div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white">Yenilikçilik</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Sürekli gelişimi ve yeniliği teşvik ederek, öğrencilerimizin çağın ötesinde düşünmelerini sağlıyoruz.</p>
+            </div>
+            <div class="rounded-2xl border border-turq-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-2 hover:border-turq-300 transition">
+              <div class="w-9 h-9 rounded-lg bg-turq-50 dark:bg-turq-900/50 text-turq-600 dark:text-turq-400 flex items-center justify-center"><i data-lucide="zap" class="w-4 h-4"></i></div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white">Dinamizm</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Enerjik ve hareketli bir topluluk olarak, öğrencilerimizin aktif ve üretken olmalarını destekliyoruz.</p>
+            </div>
+            <div class="rounded-2xl border border-turq-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-2 hover:border-turq-300 transition">
+              <div class="w-9 h-9 rounded-lg bg-turq-50 dark:bg-turq-900/50 text-turq-600 dark:text-turq-400 flex items-center justify-center"><i data-lucide="heart" class="w-4 h-4"></i></div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white">Toplumsal Duyarlılık</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Toplumsal sorunlara karşı duyarlı bireyler yetiştirerek, sosyal sorumluluk bilincini güçlendiriyoruz.</p>
+            </div>
+            <div class="rounded-2xl border border-turq-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-2 hover:border-turq-300 transition">
+              <div class="w-9 h-9 rounded-lg bg-turq-50 dark:bg-turq-900/50 text-turq-600 dark:text-turq-400 flex items-center justify-center"><i data-lucide="trending-up" class="w-4 h-4"></i></div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white">Kişisel Gelişim</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Öğrencilerimizin kişisel yeteneklerini keşfetmelerine ve geliştirmelerine olanak tanıyoruz.</p>
+            </div>
+            <div class="rounded-2xl border border-turq-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-2 hover:border-turq-300 transition">
+              <div class="w-9 h-9 rounded-lg bg-turq-50 dark:bg-turq-900/50 text-turq-600 dark:text-turq-400 flex items-center justify-center"><i data-lucide="globe" class="w-4 h-4"></i></div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white">Kültürel Zenginlik</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Farklı kültürlerden öğrencilerimizin bir araya gelerek, kültürel çeşitliliği kutluyoruz.</p>
+            </div>
+            <div class="rounded-2xl border border-turq-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-2 hover:border-turq-300 transition">
+              <div class="w-9 h-9 rounded-lg bg-turq-50 dark:bg-turq-900/50 text-turq-600 dark:text-turq-400 flex items-center justify-center"><i data-lucide="graduation-cap" class="w-4 h-4"></i></div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white">Akademik Başarı</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Mükemmeliyetçi bir yaklaşımla, öğrencilerimizin akademik alanda en yüksek başarıları hedeflemelerini sağlıyoruz.</p>
+            </div>
+            <div class="sm:col-span-2 rounded-2xl border border-turq-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-2 hover:border-turq-300 transition">
+              <div class="w-9 h-9 rounded-lg bg-turq-50 dark:bg-turq-900/50 text-turq-600 dark:text-turq-400 flex items-center justify-center"><i data-lucide="users" class="w-4 h-4"></i></div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white">Sosyal Katılım</h4>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Öğrencilerimizin toplum içinde aktif roller alarak, liderlik ve takım çalışması becerilerini geliştirmelerine yardımcı oluyoruz.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="rounded-2xl border border-turq-100 dark:border-slate-800 bg-turq-50/40 dark:bg-slate-900 p-6 space-y-3">
+            <div class="w-11 h-11 rounded-xl bg-white dark:bg-slate-800 border border-turq-200 dark:border-slate-700 text-turq-600 dark:text-turq-400 flex items-center justify-center shadow-xs">
+              <i data-lucide="compass" class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Kuruluş Hikayesi</h3>
+            <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              Başkanımız <strong>Faruk Dündar</strong> öncülüğünde; Girişimcilik Kültürü dersindeki fikir temelleri ve SKS istişareleriyle
+              kurularak kısa sürede üniversitenin en büyük öğrenci topluluğuna dönüştü.
+            </p>
+          </div>
+
+          <div class="rounded-2xl border border-turq-100 dark:border-slate-800 bg-turq-50/40 dark:bg-slate-900 p-6 space-y-3">
+            <div class="w-11 h-11 rounded-xl bg-white dark:bg-slate-800 border border-turq-200 dark:border-slate-700 text-turq-600 dark:text-turq-400 flex items-center justify-center shadow-xs">
+              <i data-lucide="heart-handshake" class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Öğrenci Dostu &amp; Ücretsiz</h3>
+            <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              Gençlik ve Spor Bakanlığı (ÜNİDES), belediyeler ve kaymakamlıklarla kurulan iş birlikleri sayesinde
+              Boğaz turlarından festivallere etkinliklerin neredeyse tamamı öğrencilere ücretsiz sunulmaktadır.
+            </p>
+          </div>
+
+          <div class="rounded-2xl border border-turq-100 dark:border-slate-800 bg-turq-50/40 dark:bg-slate-900 p-6 space-y-3">
+            <div class="w-11 h-11 rounded-xl bg-white dark:bg-slate-800 border border-turq-200 dark:border-slate-700 text-turq-600 dark:text-turq-400 flex items-center justify-center shadow-xs">
+              <i data-lucide="share-2" class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Kulüplere Proje Mentörlüğü</h3>
+            <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              Tek mesajla 15.000+ öğrenciye ulaşan duyuru ağı diğer kulüplerin etkinliklerine de açılıyor;
+              <strong>Üsküdar Go</strong> gibi ÜNİDES projelerinde kardeş kulüplere aktif proje mentörlüğü sağlanıyor.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ödüller & Başarılar -->
+    <section class="py-14 sm:py-20 bg-turq-50/60 dark:bg-slate-900/60 border-t border-turq-100 dark:border-slate-800">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-widest text-turq-600 dark:text-turq-400">Ödüller &amp; Başarılar</span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">Tescillenmiş Başarı ve Hibe Geçmişi</h2>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Award 1 -->
+          <div class="md:col-span-2 bg-white dark:bg-slate-900 rounded-2xl p-6 border-2 border-turq-300 dark:border-turq-700 shadow-sm relative overflow-hidden">
+            <div class="grid md:grid-cols-12 gap-6 items-center">
+              <div class="md:col-span-5 rounded-2xl overflow-hidden border border-turq-100 dark:border-slate-800">
+                <img src="images/img_odul_1.jpg" alt="Üsküdar Üniversitesi Gençlik Kulübü 1.lik Başarı Belgesi Töreni" class="w-full h-56 sm:h-64 object-cover object-top" />
+              </div>
+              <div class="md:col-span-7 space-y-3">
+                <span class="inline-block px-3 py-1 rounded-full turq-gradient text-white text-xs font-bold">1.'lik Ödülü</span>
+                <span class="block text-xs font-semibold text-turq-700 dark:text-turq-400">17 Ekim 2026 · Nermin Tarhan Konferans Salonu</span>
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white">2026–2027 Akademik Yılı En Başarılı Öğrenci Kulübü (1. Sıra)</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                  SKS Öğrenci Kulüpleri Oryantasyon Programı kapsamında, dönem boyu yürüttüğü çalışmalarla dereceye giren kulüpler arasında
+                  <strong>1. oldu</strong>. Ödül, Kurucu Rektör <strong>Prof. Dr. Nevzat Tarhan</strong> tarafından takdim edildi.
+                </p>
+                <a href="https://uskudar.edu.tr/haber/uskudarda-universite-yasaminda-ogrenci-kuluplerinin-onemi-vurgulandi/93388" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs font-semibold text-turq-700 dark:text-turq-400 hover:underline">
+                  <span>ÜHA Resmi Haberi Oku</span>
+                  <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Award 2 -->
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-turq-200 dark:border-slate-800 shadow-xs">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-turq-50 dark:bg-slate-800 text-turq-600 dark:text-turq-400 flex items-center justify-center shrink-0 border border-turq-200 dark:border-slate-700">
+                <i data-lucide="medal" class="w-6 h-6"></i>
+              </div>
+              <div class="space-y-2">
+                <span class="text-xs font-semibold text-turq-700 dark:text-turq-400">Mart 2025 · Gençlik ve Spor Bakanlığı (ÜNİDES)</span>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">50.000 TL Ulusal Hibe Desteği — Gençlik Kupası</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                  2024–2025 dönemi ÜNİDES programı kapsamında "Gençlik Kupası / Fakülteler Arası Voleybol Turnuvası" projesiyle
+                  Spor ve Sağlıklı Yaşam alanında <strong>50.000 TL hibe</strong> almaya hak kazandı.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Award 3 -->
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-turq-200 dark:border-slate-800 shadow-xs">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-turq-50 dark:bg-slate-800 text-turq-600 dark:text-turq-400 flex items-center justify-center shrink-0 border border-turq-200 dark:border-slate-700">
+                <i data-lucide="book-open-check" class="w-6 h-6"></i>
+              </div>
+              <div class="space-y-2">
+                <span class="text-xs font-semibold text-turq-700 dark:text-turq-400">6 Şubat 2026 · İçişleri Bakanlığı &amp; İstanbul Valiliği</span>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">"100 Yazar 100 Yeni Eser" Koordinasyon Başarısı</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                  İçişleri Bakanlığı desteği ve İstanbul Valiliği himayesindeki proje, Gençlik Kulübü koordinasyonunda
+                  <strong>105 genç yazar ve 105 eserle</strong> tamamlandı.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Award 4 -->
+          <div class="md:col-span-2 bg-white dark:bg-slate-900 rounded-2xl p-6 border border-turq-200 dark:border-slate-800 shadow-xs">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-turq-50 dark:bg-slate-800 text-turq-600 dark:text-turq-400 flex items-center justify-center shrink-0 border border-turq-200 dark:border-slate-700">
+                <i data-lucide="lightbulb" class="w-6 h-6"></i>
+              </div>
+              <div class="space-y-2">
+                <span class="text-xs font-semibold text-turq-700 dark:text-turq-400">Aralık 2025 · Girişimcilik &amp; Mentörlük</span>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Üsküdar Go Girişimcilik Zirvesi &amp; Gölgeden Işığa Projesi</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                  Sürdürülebilir Kalkınma Kulübü ile ortak yürütülen ÜNİDES destekli <strong>Üsküdar Go</strong> girişimcilik zirvesi ve
+                  İçişleri Bakanlığı destekli <strong>Gölgeden Işığa</strong> eğitim-kapanış programlarıyla ulusal projelerde öncü rol üstlendi.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== SAYFA 2: ETKİNLİKLER (Üstte Başlık · Ortada Kısa Bilgi · Altta Fotoğraf) ==================== -->
+  <section id="page-etkinlikler" class="page-view hidden py-10 sm:py-14 bg-white dark:bg-slate-950 min-h-[75vh]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl mb-8">
+        <span class="text-xs font-bold uppercase tracking-widest text-turq-600 dark:text-turq-400">Etkinlikler</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">Tüm Kulüp Etkinliklerimiz (48 Etkinlik)</h2>
+        <p class="text-slate-600 dark:text-slate-300 mt-2 text-sm sm:text-base">
+          Her kartta üstte etkinlik başlığı, ortada kısa bilgi ve altta örnek fotoğraf yer almaktadır. Kategori, dönem ve arama ile filtreleyebilirsiniz.
+        </p>
+      </div>
+
+      <!-- Filter & Search Bar -->
+      <div class="space-y-3 mb-8 bg-turq-50/70 dark:bg-slate-900 p-4 rounded-2xl border border-turq-100 dark:border-slate-800">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div id="event-filters" class="flex flex-wrap gap-2">
+            <button type="button" data-filter="all" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold turq-gradient text-white shadow-xs transition">Tümü</button>
+            <button type="button" data-filter="kultur" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-turq-200 dark:border-slate-700 hover:bg-turq-50 dark:hover:bg-slate-700 transition">Kültür &amp; Sosyal</button>
+            <button type="button" data-filter="spor" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-turq-200 dark:border-slate-700 hover:bg-turq-50 dark:hover:bg-slate-700 transition">Spor &amp; Doğa</button>
+            <button type="button" data-filter="akademik" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-turq-200 dark:border-slate-700 hover:bg-turq-50 dark:hover:bg-slate-700 transition">Akademik &amp; Proje</button>
+            <button type="button" data-filter="atolye" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-turq-200 dark:border-slate-700 hover:bg-turq-50 dark:hover:bg-slate-700 transition">Atölye &amp; Sanat</button>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="relative flex-1 sm:w-64">
+              <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+              <input
+                id="event-search"
+                type="text"
+                placeholder="48 etkinlik içinde ara..."
+                class="w-full pl-9 pr-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-turq-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-turq-400"
+              />
+            </div>
+            <span id="event-count" class="text-xs font-bold text-turq-800 dark:text-turq-300 whitespace-nowrap bg-white dark:bg-slate-800 px-3 py-2 rounded-xl border border-turq-200 dark:border-slate-700">48 etkinlik</span>
+          </div>
+        </div>
+
+        <div id="season-filters" class="flex flex-wrap items-center gap-2 pt-2 border-t border-turq-100 dark:border-slate-800">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mr-1">Dönem:</span>
+          <button type="button" data-season="all" class="season-btn px-3 py-1 rounded-lg text-[11px] font-semibold bg-turq-700 text-white transition">Tüm Dönemler (48)</button>
+          <button type="button" data-season="2026-2027" class="season-btn px-3 py-1 rounded-lg text-[11px] font-semibold bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-turq-200 dark:border-slate-700 hover:bg-turq-50 transition">2026–2027 (8)</button>
+          <button type="button" data-season="2025-2026" class="season-btn px-3 py-1 rounded-lg text-[11px] font-semibold bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-turq-200 dark:border-slate-700 hover:bg-turq-50 transition">2025–2026 (17)</button>
+          <button type="button" data-season="2024-2025" class="season-btn px-3 py-1 rounded-lg text-[11px] font-semibold bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-turq-200 dark:border-slate-700 hover:bg-turq-50 transition">2024–2025 (23)</button>
+        </div>
+      </div>
+
+      <!-- Events Grid -->
+      <div id="events-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      <div id="events-empty" class="hidden text-center py-12 rounded-2xl border border-dashed border-turq-200 dark:border-slate-700 bg-turq-50/30 dark:bg-slate-900">
+        <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">Aramanızla eşleşen etkinlik bulunamadı.</p>
+        <button id="reset-filters-btn" type="button" class="mt-3 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-turq-200 dark:border-slate-700 text-xs font-semibold text-turq-700 dark:text-turq-300 hover:bg-turq-50">
+          Filtreleri Sıfırla
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SAYFA 3: HABERLER (Detaylı Haber + 2-3 Fotoğraf) ==================== -->
+  <section id="page-haberler" class="page-view hidden py-10 sm:py-14 bg-white dark:bg-slate-950 min-h-[75vh]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-turq-600 dark:text-turq-400">Haberler &amp; Basın Arşivi</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">Etkinlik Haberlerimiz</h2>
+          <p class="text-slate-600 dark:text-slate-300 mt-2 text-sm sm:text-base max-w-2xl">
+            Gerçekleştirdiğimiz etkinliklerin detaylı haber metinleri ve 2–3 fotoğraflık görsel galerileri. Fotoğraflara tıklayarak büyütebilirsiniz.
+          </p>
+        </div>
+        <div class="relative w-full md:w-64">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+          <input id="news-search" type="text" placeholder="Haberlerde ara..." class="w-full pl-9 pr-3 py-2 rounded-xl bg-turq-50/60 dark:bg-slate-900 border border-turq-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-turq-400" />
+        </div>
+      </div>
+
+      <div id="news-list" class="space-y-8"></div>
+    </div>
+  </section>
+
+  <!-- ==================== SAYFA 4: DUYURULAR (Kolay Kopyalanabilir Şablon) ==================== -->
+  <section id="page-duyurular" class="page-view hidden py-10 sm:py-14 bg-white dark:bg-slate-950 min-h-[75vh]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-turq-600 dark:text-turq-400">Duyurular</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">Güncel Kulüp Duyuruları</h2>
+          <p class="text-slate-600 dark:text-slate-300 mt-2 text-sm sm:text-base max-w-2xl">
+            Etkinlik kayıtları, ÜNİDES proje çağrıları ve kulüp bilgilendirmeleri. Yeni duyuru eklemek için kod içindeki <code class="px-1.5 py-0.5 rounded bg-turq-50 dark:bg-slate-800 text-turq-700 dark:text-turq-300 text-xs">ANNOUNCEMENTS</code> listesinden bir bloğu kopyalayıp düzenlemeniz yeterlidir.
+          </p>
+        </div>
+        <div id="announcement-filters" class="flex flex-wrap gap-2">
+          <button type="button" data-ann-filter="all" class="ann-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold turq-gradient text-white transition">Tümü</button>
+          <button type="button" data-ann-filter="Etkinlik" class="ann-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-turq-200 dark:border-slate-700 transition">Etkinlik</button>
+          <button type="button" data-ann-filter="Proje" class="ann-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-turq-200 dark:border-slate-700 transition">Proje / ÜNİDES</button>
+          <button type="button" data-ann-filter="Genel" class="ann-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-turq-200 dark:border-slate-700 transition">Genel</button>
+        </div>
+      </div>
+
+      <div id="announcements-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+  </section>
+
+  <!-- ==================== SAYFA 5: KADROMUZ (Organizasyon Şeması + 44 Kişilik Ekip) ==================== -->
+  <section id="page-kadromuz" class="page-view hidden py-10 sm:py-14 bg-turq-50/40 dark:bg-slate-950 min-h-[75vh]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <div class="text-center max-w-3xl mx-auto">
+        <span class="text-xs font-bold uppercase tracking-widest text-turq-600 dark:text-turq-400">Kadromuz &amp; Teşkilat Şeması</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">Yönetim Yapımız ve 44 Kişilik Ekibimiz</h2>
+        <p class="text-slate-600 dark:text-slate-300 mt-2 text-sm sm:text-base">
+          Başkanımız, 2 Başkan Yardımcımız, Genel Sekreterlik ve Sekreterya çatısı altında görev yapan 44 kişilik yönetim ekibimiz.
+        </p>
+      </div>
+
+      <!-- BAŞKAN KARTI (Üst Düğüm) -->
+      <div class="max-w-3xl mx-auto bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border-2 border-turq-400 dark:border-turq-600 shadow-md">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <div class="w-20 h-20 rounded-2xl turq-gradient text-white flex items-center justify-center font-extrabold text-2xl shrink-0 shadow-md shadow-turq-500/20">
+            FD
+          </div>
+          <div class="flex-1">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-turq-50 dark:bg-turq-900/50 border border-turq-200 dark:border-turq-700 text-turq-700 dark:text-turq-300 text-xs font-bold mb-2">
+              Üsküdar Üniversitesi Gençlik Kulübü Başkanı
+            </div>
+            <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white">Faruk Dündar</h3>
+            <ul class="mt-2 space-y-1 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+              <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-turq-500"></span><span>Genç Beyinler Akademisi Eski Başkanı</span></li>
+              <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-turq-500"></span><span>Üsküdar Üniversitesi Öğrenci Temsilciliği</span></li>
+              <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-turq-500"></span><span>Marmara Üniversitesi Yüksek Lisans Öğrencisi</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Röportaj & Basın Satırı -->
+        <div class="mt-5 pt-5 border-t border-turq-100 dark:border-slate-800 space-y-3">
+          <div class="flex flex-wrap gap-2.5">
+            <a href="https://www.youtube.com/watch?v=rTLNyncgA7Y" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-turq-50 dark:bg-slate-800 text-turq-800 dark:text-turq-300 border border-turq-200 dark:border-slate-700 text-xs font-semibold hover:bg-turq-100 dark:hover:bg-slate-700 transition">
+              <i data-lucide="video" class="w-4 h-4"></i>
+              <span>Üsküdar TV Röportajı</span>
+            </a>
+            <a href="https://uskudar.edu.tr/haber/genclik-kulubunden-gelecege-nefes/65118" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition">
+              <i data-lucide="newspaper" class="w-4 h-4"></i>
+              <span>Basın Açıklaması</span>
+            </a>
+          </div>
+
+          <!-- Röportajın Altında LinkedIn ve X (Twitter) 2 Buton -->
+          <div class="flex flex-wrap gap-2.5">
+            <a href="https://tr.linkedin.com/in/faruk-d%C3%BCndar-4b35781b7" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0A66C2] text-white text-xs font-semibold shadow-xs hover:opacity-90 transition">
+              <i data-lucide="linkedin" class="w-4 h-4"></i>
+              <span>LinkedIn Profili</span>
+            </a>
+            <a href="https://x.com/farukdundarrr" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-xs font-semibold shadow-xs hover:opacity-90 transition">
+              <i data-lucide="twitter" class="w-4 h-4"></i>
+              <span>X (Twitter) · @farukdundarrr</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- AĞAÇ BAĞLANTI ÇUBUĞU (Başkandan 3 Dala) -->
+      <div class="hidden lg:block max-w-5xl mx-auto -my-10 pt-2">
+        <div class="org-v-line h-10"></div>
+        <div class="border-t-2 border-turq-500 dark:border-turq-400 mx-auto w-[68%]"></div>
+        <div class="grid grid-cols-3 w-[68%] mx-auto">
+          <div class="flex justify-start"><div class="w-0.5 h-8 bg-turq-500 dark:bg-turq-400"></div></div>
+          <div class="flex justify-center"><div class="w-0.5 h-8 bg-turq-500 dark:bg-turq-400"></div></div>
+          <div class="flex justify-end"><div class="w-0.5 h-8 bg-turq-500 dark:bg-turq-400"></div></div>
+        </div>
+      </div>
+
+      <!-- 3 ANA DAL -->
+      <div class="grid lg:grid-cols-3 gap-6 items-start">
+        <!-- DAL 1: Başkan Yardımcısı 1 — Emirhan Sefer -->
+        <div class="flex flex-col items-center">
+          <div class="w-full bg-white dark:bg-slate-900 rounded-2xl p-5 border-2 border-turq-300 dark:border-turq-700 shadow-sm text-center">
+            <div class="w-12 h-12 rounded-xl turq-gradient text-white font-extrabold flex items-center justify-center mx-auto mb-3 text-base">ES</div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full bg-turq-50 dark:bg-turq-900/50 text-turq-700 dark:text-turq-300 text-[11px] font-bold">1. Başkan Yardımcısı</span>
+            <h4 class="text-lg font-extrabold text-slate-900 dark:text-white mt-1">Emirhan Sefer</h4>
+          </div>
+          <div class="org-v-line h-6"></div>
+          <div class="w-full space-y-3 bg-white/80 dark:bg-slate-900/80 p-4 rounded-2xl border border-turq-200 dark:border-slate-800">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-turq-700 dark:text-turq-400 text-center">Bağlı Departmanlar</p>
+            <div class="p-3.5 rounded-xl bg-turq-50/80 dark:bg-slate-800 border border-turq-100 dark:border-slate-700 flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-white dark:bg-slate-900 text-turq-600 dark:text-turq-400 flex items-center justify-center shrink-0 border border-turq-200 dark:border-slate-700">
+                <i data-lucide="music" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h5 class="text-sm font-bold text-slate-900 dark:text-white">Kültür &amp; Sosyal</h5>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">Geziler, festivaller, Boğaz &amp; kampüs etkinlikleri</p>
+              </div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-turq-50/80 dark:bg-slate-800 border border-turq-100 dark:border-slate-700 flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-white dark:bg-slate-900 text-turq-600 dark:text-turq-400 flex items-center justify-center shrink-0 border border-turq-200 dark:border-slate-700">
+                <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h5 class="text-sm font-bold text-slate-900 dark:text-white">Akademik &amp; Proje</h5>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">ÜNİDES hibeleri, çalıştaylar, kitap tahlilleri</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DAL 2: Başkan Yardımcısı 2 — Nisa Çalış -->
+        <div class="flex flex-col items-center">
+          <div class="w-full bg-white dark:bg-slate-900 rounded-2xl p-5 border-2 border-turq-300 dark:border-turq-700 shadow-sm text-center">
+            <div class="w-12 h-12 rounded-xl turq-gradient text-white font-extrabold flex items-center justify-center mx-auto mb-3 text-base">NÇ</div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full bg-turq-50 dark:bg-turq-900/50 text-turq-700 dark:text-turq-300 text-[11px] font-bold">2. Başkan Yardımcısı</span>
+            <h4 class="text-lg font-extrabold text-slate-900 dark:text-white mt-1">Nisa Çalış</h4>
+          </div>
+          <div class="org-v-line h-6"></div>
+          <div class="w-full space-y-3 bg-white/80 dark:bg-slate-900/80 p-4 rounded-2xl border border-turq-200 dark:border-slate-800">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-turq-700 dark:text-turq-400 text-center">Bağlı Departmanlar</p>
+            <div class="p-3.5 rounded-xl bg-turq-50/80 dark:bg-slate-800 border border-turq-100 dark:border-slate-700 flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-white dark:bg-slate-900 text-turq-600 dark:text-turq-400 flex items-center justify-center shrink-0 border border-turq-200 dark:border-slate-700">
+                <i data-lucide="trophy" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h5 class="text-sm font-bold text-slate-900 dark:text-white">Spor &amp; Doğa</h5>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">Gençlik Kupası, koşular, kano, fidan dikimi</p>
+              </div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-turq-50/80 dark:bg-slate-800 border border-turq-100 dark:border-slate-700 flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-white dark:bg-slate-900 text-turq-600 dark:text-turq-400 flex items-center justify-center shrink-0 border border-turq-200 dark:border-slate-700">
+                <i data-lucide="palette" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h5 class="text-sm font-bold text-slate-900 dark:text-white">Atölye &amp; Sanat</h5>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">Seramik, ebru, kurabiye ve el sanatları</p>
+              </div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-turq-100/70 dark:bg-turq-900/30 border border-turq-300 dark:border-turq-700 flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg turq-gradient text-white flex items-center justify-center shrink-0 font-bold text-xs">YD</div>
+              <div>
+                <h5 class="text-sm font-bold text-slate-900 dark:text-white">Sosyal Medya</h5>
+                <p class="text-xs font-semibold text-turq-700 dark:text-turq-300">Başkan: Yeşim Durmuş</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DAL 3: Genel Sekreterlik -> Sekreterya -->
+        <div class="flex flex-col items-center">
+          <div class="w-full bg-white dark:bg-slate-900 rounded-2xl p-5 border-2 border-turq-300 dark:border-turq-700 shadow-sm text-center">
+            <div class="w-12 h-12 rounded-xl turq-gradient text-white font-extrabold flex items-center justify-center mx-auto mb-3 text-base">
+              <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+            </div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full bg-turq-50 dark:bg-turq-900/50 text-turq-700 dark:text-turq-300 text-[11px] font-bold">İdari Koordinasyon</span>
+            <h4 class="text-lg font-extrabold text-slate-900 dark:text-white mt-1">Genel Sekreterlik</h4>
+          </div>
+          <div class="org-v-line h-6"></div>
+          <div class="w-full bg-white dark:bg-slate-900 p-5 rounded-2xl border-2 border-turq-200 dark:border-slate-700 text-center shadow-xs">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-turq-600 dark:text-turq-400">Bağlı Birim</span>
+            <h5 class="text-base font-extrabold text-slate-900 dark:text-white mt-1">Sekreterya</h5>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Üye kayıt, resmi yazışmalar, toplantı tutanakları ve 44 kişilik yönetim ekibi koordinasyonu</p>
+          </div>
+          <!-- Sekreteryanın altından aşağı inen çubuk -->
+          <div class="org-v-line h-10"></div>
+          <span class="px-3 py-1 rounded-full bg-turq-600 text-white text-[11px] font-bold shadow-xs">44 Kişilik Yönetim Ekibi ↓</span>
+        </div>
+      </div>
+
+      <!-- SEKRETERYA ALTINDA 44 KİŞİLİK YÖNETİM EKİBİ (Kişi 1 - Kişi 44) -->
+      <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border-2 border-turq-200 dark:border-slate-800 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-turq-600 dark:text-turq-400">Sekreterya · Tam Ekip Listesi</span>
+            <h3 class="text-xl font-extrabold text-slate-900 dark:text-white mt-1">44 Kişilik Yönetim Ekibi (Kişi 1 – Kişi 44)</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Kod içindeki <code class="px-1.5 py-0.5 rounded bg-turq-50 dark:bg-slate-800 text-turq-700 dark:text-turq-300">TEAM_44</code> dizisinden isimleri ve görevleri dilediğiniz gibi güncelleyebilirsiniz.
+            </p>
+          </div>
+          <div class="relative w-full sm:w-56">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input id="team-search" type="text" placeholder="Üye ara (örn. Kişi 12)..." class="w-full pl-9 pr-3 py-2 rounded-xl bg-turq-50/60 dark:bg-slate-800 border border-turq-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-turq-400" />
+          </div>
+        </div>
+
+        <div id="team-44-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"></div>
+      </div>
+
+      <!-- SKS & Akademik Destek -->
+      <div class="pt-4">
+        <h3 class="text-lg font-extrabold text-slate-900 dark:text-white mb-4">SKS &amp; Akademik Destek Kadrosu</h3>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-turq-100 dark:border-slate-800 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-turq-100 dark:bg-turq-900/50 text-turq-800 dark:text-turq-300 font-bold flex items-center justify-center shrink-0 text-sm">SP</div>
+            <div>
+              <span class="text-[10px] font-semibold text-turq-600 dark:text-turq-400">SKS Daire Başkanı</span>
+              <h4 class="font-bold text-slate-900 dark:text-white text-sm">Sadık Paksoy</h4>
+            </div>
+          </div>
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-turq-100 dark:border-slate-800 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-turq-100 dark:bg-turq-900/50 text-turq-800 dark:text-turq-300 font-bold flex items-center justify-center shrink-0 text-sm">KK</div>
+            <div>
+              <span class="text-[10px] font-semibold text-turq-600 dark:text-turq-400">SKS Yerleşke Sorumlusu</span>
+              <h4 class="font-bold text-slate-900 dark:text-white text-sm">Kenan Karagöz</h4>
+            </div>
+          </div>
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-turq-100 dark:border-slate-800 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-turq-100 dark:bg-turq-900/50 text-turq-800 dark:text-turq-300 font-bold flex items-center justify-center shrink-0 text-sm">NY</div>
+            <div>
+              <span class="text-[10px] font-semibold text-turq-600 dark:text-turq-400">Akademik Destek</span>
+              <h4 class="font-bold text-slate-900 dark:text-white text-sm">Dr. Öğr. Üyesi Nebiye Yaşar</h4>
+            </div>
+          </div>
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-turq-100 dark:border-slate-800 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-turq-100 dark:bg-turq-900/50 text-turq-800 dark:text-turq-300 font-bold flex items-center justify-center shrink-0 text-sm">MG</div>
+            <div>
+              <span class="text-[10px] font-semibold text-turq-600 dark:text-turq-400">SKS Koordinasyon</span>
+              <h4 class="font-bold text-slate-900 dark:text-white text-sm">Meliha Merve Günaltay</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== FOOTER (Kulüp Özeti · İletişim & Gençlik Kulübü IG · Altunizade Harita) ==================== -->
+  <footer class="bg-slate-900 text-slate-300 py-12 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-12 gap-8 pb-8 border-b border-slate-800">
+        <!-- Sol Blok: Kulüp Özeti -->
+        <div class="lg:col-span-4 space-y-3">
+          <div class="flex items-center gap-2.5 text-white font-bold text-lg">
+            <img src="images/img_club_logo.jpg" alt="Gençlik Kulübü Logo" class="w-9 h-9 rounded-full object-cover border-2 border-turq-400 bg-white shrink-0" />
+            <span>Üsküdar Üniversitesi Gençlik Kulübü</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Üsküdar Üniversitesi'nin 25.000 öğrencisini bölümler üstü bir çatı altında buluşturan Gençlik Kulübü; 3.000'i aşkın üyesi,
+            44 kişilik dinamik yönetim ekibi ve 15.000+ öğrenciye ulaşan ağıyla kültür, spor, sanat, çevre ve proje alanlarında
+            öğrenci dostu, ücretsiz etkinlikler ve ulusal ÜNİDES projeleri üretmektedir.
+          </p>
+        </div>
+
+        <!-- Orta Blok: İletişim & Gençlik Kulübü Instagram -->
+        <div class="lg:col-span-4 space-y-3">
+          <h4 class="text-white font-semibold text-sm">İletişim &amp; Sosyal Medya</h4>
+          <ul class="space-y-2 text-xs text-slate-400">
+            <li class="flex items-start gap-2">
+              <i data-lucide="map-pin" class="w-4 h-4 text-turq-400 shrink-0 mt-0.5"></i>
+              <span>Altunizade Mh. Üniversite Sokağı No: 14, PK: 34662 Üsküdar / İstanbul</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="phone" class="w-4 h-4 text-turq-400 shrink-0"></i>
+              <span>+90 (216) 400 22 22</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="mail" class="w-4 h-4 text-turq-400 shrink-0"></i>
+              <span>uskudaruniversitesigencligi@gmail.com</span>
+            </li>
+            <li class="pt-1">
+              <a id="club-instagram-link" href="https://www.instagram.com/uskudarunigenclik/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 border border-turq-500/40 text-turq-300 font-semibold hover:bg-slate-700 transition">
+                <i data-lucide="instagram" class="w-4 h-4"></i>
+                <span id="club-instagram-handle">@uskudarunigenclik</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Sağ Blok: Altunizade Yerleşkesi Haritası -->
+        <div class="lg:col-span-4 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <h4 class="text-white font-semibold text-sm">Altunizade Yerleşkesi Konumu</h4>
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=41.0247,29.0389&query_place_id=ChIJ8Wq5ueS3yhQRKt6wmuog73g"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1 text-[11px] font-semibold text-turq-400 hover:underline"
+            >
+              <span>Google Maps'te Aç</span>
+              <i data-lucide="external-link" class="w-3 h-3"></i>
+            </a>
+          </div>
+          <div id="altunizade-map" class="w-full h-[180px] rounded-2xl overflow-hidden border border-slate-700 bg-slate-800"></div>
+        </div>
+      </div>
+
+      <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500">
+        <span>© 2026 Üsküdar Üniversitesi Gençlik Kulübü · Tüm Hakları Saklıdır.</span>
+        <span>Turkuaz &amp; Beyaz / Koyu Tema Destekli Resmi Web Uygulaması</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Event Detail Modal -->
+  <div id="event-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-turq-100 dark:border-slate-800 relative max-h-[90vh] overflow-y-auto">
+      <button id="close-event-modal" type="button" aria-label="Kapat" class="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:bg-turq-50 dark:hover:bg-slate-800 hover:text-turq-700">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <div id="event-modal-body" class="space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- Photo Lightbox Modal (Haberler Galerisi için) -->
+  <div id="lightbox-modal" class="hidden fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
+    <button id="close-lightbox" type="button" aria-label="Kapat" class="absolute top-5 right-5 p-2.5 rounded-full bg-white/10 text-white hover:bg-white/20">
+      <i data-lucide="x" class="w-6 h-6"></i>
+    </button>
+    <div class="max-w-4xl w-full text-center space-y-3">
+      <img id="lightbox-img" src="" alt="Büyütülmüş fotoğraf" class="max-h-[80vh] mx-auto rounded-2xl shadow-2xl object-contain" />
+      <p id="lightbox-caption" class="text-xs sm:text-sm text-slate-200 font-medium"></p>
+    </div>
+  </div>
+
+  <!-- Join Club Modal -->
+  <div id="join-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-turq-100 dark:border-slate-800 relative">
+      <button id="close-join-modal" type="button" aria-label="Kapat" class="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:bg-turq-50 dark:hover:bg-slate-800 hover:text-turq-700">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <div class="space-y-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-turq-600 dark:text-turq-400">Üyelik &amp; İletişim</span>
+          <h3 class="text-xl font-extrabold text-slate-900 dark:text-white mt-1">Gençlik Kulübü Ön Kayıt</h3>
+          <p class="text-xs text-slate-600 dark:text-slate-300 mt-1">
+            İlgi duyduğunuz departmanı seçerek ön kayıt oluşturabilirsiniz.
+          </p>
+        </div>
+
+        <form id="join-form" class="space-y-3">
+          <div>
+            <label for="join-name" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Ad Soyad</label>
+            <input id="join-name" type="text" required placeholder="Örn. Ayşe Yılmaz" class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-turq-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-turq-400" />
+          </div>
+          <div>
+            <label for="join-faculty" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Fakülte / Bölüm</label>
+            <input id="join-faculty" type="text" required placeholder="Örn. Sağlık Bilimleri / Hemşirelik" class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-turq-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-turq-400" />
+          </div>
+          <div>
+            <label for="join-interest" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">İlgi Duyulan Departman</label>
+            <select id="join-interest" class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-turq-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-turq-400">
+              <option value="Kültür &amp; Sosyal">Kültür &amp; Sosyal</option>
+              <option value="Akademik &amp; Proje">Akademik &amp; Proje</option>
+              <option value="Spor &amp; Doğa">Spor &amp; Doğa</option>
+              <option value="Atölye &amp; Sanat">Atölye &amp; Sanat</option>
+              <option value="Sosyal Medya">Sosyal Medya</option>
+              <option value="Sekreterya">Sekreterya</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full py-2.5 rounded-xl turq-gradient text-white text-sm font-semibold shadow-sm hover:opacity-95 transition">
+            Ön Kaydı Kaydet
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

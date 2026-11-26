@@ -1,0 +1,64 @@
+body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .dark .glass-nav {
+      background: rgba(15, 23, 42, 0.92);
+    }
+    .turq-gradient {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 50%, #14b8a6 100%);
+    }
+    .turq-soft-bg {
+      background: linear-gradient(180deg, #ecfeff 0%, #ffffff 100%);
+    }
+    .dark .turq-soft-bg {
+      background: linear-gradient(180deg, #0b1929 0%, #090d16 100%);
+    }
+    /* Org chart connector helpers */
+    .org-v-line {
+      width: 2px;
+      background-color: #06b6d4;
+      margin: 0 auto;
+    }
+    .dark .org-v-line {
+      background-color: #22d3ee;
+    }
+    .leaflet-container {
+      z-index: 10;
+      font-family: 'Inter', sans-serif;
+    }
+    @keyframes logoReveal {
+      0% { opacity: 0; transform: scale(0.78); }
+      60% { opacity: 1; transform: scale(1.04); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes splashBar {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+    @keyframes pageEnter {
+      0% { opacity: 0; transform: translateY(14px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .splash-logo-anim {
+      animation: logoReveal 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .splash-bar-anim {
+      animation: splashBar 1.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    #splash-screen {
+      transition: opacity 0.85s ease, visibility 0.85s ease, transform 0.85s ease;
+    }
+    #splash-screen.splash-hide {
+      opacity: 0;
+      visibility: hidden;
+      transform: scale(1.03);
+      pointer-events: none;
+    }
+    .page-animate {
+      animation: pageEnter 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
