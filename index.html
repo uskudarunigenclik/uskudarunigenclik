@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     tailwind.config = {
@@ -203,6 +204,7 @@
           <button type="button" data-page-target="duyurular" class="nav-page-btn px-3 py-2 rounded-lg transition">Duyurular</button>
           <button type="button" data-page-target="kadromuz" class="nav-page-btn px-3 py-2 rounded-lg transition">Kadromuz</button>
           <button type="button" data-page-target="uyekarti" class="nav-page-btn px-3 py-2 rounded-lg transition">Üye Kartı</button>
+          <button type="button" data-page-target="dogrula" class="nav-page-btn px-3 py-2 rounded-lg transition">Üye Doğrula</button>
         </nav>
 
         <!-- Right Controls: Join + Theme Toggle (En Sağ Üstte) + Mobile Menu -->
@@ -239,6 +241,7 @@
           <button type="button" data-page-target="duyurular" class="nav-page-btn mobile-nav-link text-left px-3 py-2 rounded-lg">Duyurular</button>
           <button type="button" data-page-target="kadromuz" class="nav-page-btn mobile-nav-link text-left px-3 py-2 rounded-lg">Kadromuz</button>
           <button type="button" data-page-target="uyekarti" class="nav-page-btn mobile-nav-link text-left px-3 py-2 rounded-lg">Üye Kartı</button>
+          <button type="button" data-page-target="dogrula" class="nav-page-btn mobile-nav-link text-left px-3 py-2 rounded-lg">Üye Doğrula</button>
           <a id="open-join-mobile-btn" href="https://e-sks.uskudar.edu.tr/auth/login" target="_blank" rel="noopener noreferrer" class="mt-2 px-3 py-2 rounded-xl turq-gradient text-white text-xs font-semibold text-center block">Kulübe Katıl</a>
         </div>
       </div>
@@ -979,15 +982,20 @@
                 </div>
               </div>
 
-              <!-- Alt Şerit -->
-              <div class="relative z-10 pt-3 border-t border-white/20 flex items-center justify-between gap-2 text-[10px] sm:text-[11px]">
-                <div>
-                  <span class="block text-white/65 uppercase tracking-wider text-[9px]">Üye Kodu</span>
-                  <span id="mc-preview-code" class="font-mono font-bold tracking-wider">UUGK-2026-0001</span>
+              <!-- Alt Şerit + Doğrulama QR Kodu -->
+              <div class="relative z-10 pt-2.5 border-t border-white/20 flex items-end justify-between gap-3 text-[10px] sm:text-[11px]">
+                <div class="flex items-end gap-5">
+                  <div>
+                    <span class="block opacity-70 uppercase tracking-wider text-[9px]">Üye Kodu</span>
+                    <span id="mc-preview-code" class="font-mono font-bold tracking-wider">UUGK-26-XXXX</span>
+                  </div>
+                  <div>
+                    <span class="block opacity-70 uppercase tracking-wider text-[9px]">Öğrenci / Sicil</span>
+                    <span id="mc-preview-stno" class="font-mono font-bold">—</span>
+                  </div>
                 </div>
-                <div class="text-right">
-                  <span class="block text-white/65 uppercase tracking-wider text-[9px]">Öğrenci / Sicil</span>
-                  <span id="mc-preview-stno" class="font-mono font-bold">—</span>
+                <div class="bg-white p-1 rounded-lg shadow-md shrink-0" title="Kafe / İşletme Doğrulama QR Kodu">
+                  <canvas id="mc-preview-qr" width="52" height="52" class="block w-11 h-11 sm:w-13 sm:h-13"></canvas>
                 </div>
               </div>
             </div>
@@ -1081,6 +1089,52 @@
             <strong>Merkezi Google E-Tablolar (Excel) Notu:</strong> Statik sitede kayıtlar varsayılan olarak bu cihazın tarayıcısında saklanır ve yukarıdaki <em>Excel (.csv) İndir</em> tuşuyla dışa aktarılır. Farklı telefonlardan kayıt olan tüm öğrencilerin otomatik olarak tek bir Google E-Tablo'da toplanması için kodun üst kısmındaki <code>MEMBER_SHEETS_WEBHOOK_URL</code> alanına Google Apps Script bağlantınızı yapıştırmanız yeterlidir.
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SAYFA 7: KAFE / İŞLETME ÜYE DOĞRULAMA EKRANI ==================== -->
+  <section id="page-dogrula" class="page-view hidden py-10 sm:py-14 bg-turq-50/40 dark:bg-slate-950 min-h-[75vh]">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 space-y-6">
+      <div class="text-center space-y-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-turq-100 dark:bg-turq-900/50 text-turq-800 dark:text-turq-300 text-xs font-bold">
+          <i data-lucide="scan-line" class="w-3.5 h-3.5"></i>
+          <span>Anlaşmalı İşletme &amp; Kafe Kontrol Ekranı</span>
+        </span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Kulüp Üyesi Doğrulama</h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+          Öğrencinin dijital kartındaki QR kodu kamerayla okutun veya kart üzerindeki <strong>Üye Kodu</strong>nu aşağıya yazarak aktif üyeliğini anında doğrulayın.
+        </p>
+      </div>
+
+      <!-- Kod Sorgulama Kutusu -->
+      <form id="verify-member-form" class="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-turq-100 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row gap-3">
+        <div class="relative flex-1">
+          <i data-lucide="qr-code" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          <input
+            id="verify-code-input"
+            type="text"
+            required
+            maxlength="24"
+            placeholder="Üye Kodu (Örn. UUGK-26-7K9P)"
+            class="w-full pl-10 pr-4 py-3 rounded-xl bg-turq-50/40 dark:bg-slate-800 border border-turq-200 dark:border-slate-700 text-sm font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-white placeholder:font-sans placeholder:font-normal placeholder:normal-case placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-turq-400"
+          />
+        </div>
+        <button id="verify-submit-btn" type="submit" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl turq-gradient text-white text-sm font-bold shadow-sm hover:opacity-95 transition shrink-0">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span>Doğrula</span>
+        </button>
+      </form>
+
+      <!-- Sonuç Kartı -->
+      <div id="verify-result-box" class="hidden"></div>
+
+      <!-- İşletmeler İçin Kısa Bilgi -->
+      <div class="rounded-2xl bg-white dark:bg-slate-900 p-4 border border-turq-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 leading-relaxed flex items-start gap-3">
+        <i data-lucide="info" class="w-4 h-4 text-turq-600 dark:text-turq-400 shrink-0 mt-0.5"></i>
+        <span>
+          <strong>Güvenlik İpucu:</strong> Geçerli doğrulama ekranında altta canlı akan saat/saniye göstergesi bulunur; bu sayede eski ekran görüntüsüyle işlem yapılamaz. Ekrandaki ad-soyad ve öğrenci numarasını öğrenci kimliğiyle eşleştirerek kampanya/indirimi uygulayabilirsiniz.
+        </span>
       </div>
     </div>
   </section>
@@ -2293,6 +2347,221 @@
       return 'UUGK-26-' + rand;
     }
 
+    let verifyClockInterval = null;
+
+    function getVerifyUrlForCode(code) {
+      const cleanCode = String(code || 'UUGK-26-ORNEK').trim().toUpperCase();
+      try {
+        if (window.location && window.location.protocol && window.location.protocol.startsWith('http')) {
+          return window.location.origin + window.location.pathname + '#dogrula/' + encodeURIComponent(cleanCode);
+        }
+      } catch (e) {}
+      return 'https://uskudarunigenclik.github.io/uskudarunigenclik/#dogrula/' + encodeURIComponent(cleanCode);
+    }
+
+    function drawQrOnCanvas(ctx, text, x, y, size, darkColor = '#0f172a', lightColor = '#ffffff') {
+      ctx.fillStyle = lightColor;
+      ctx.fillRect(x, y, size, size);
+      if (typeof window.qrcode !== 'function') {
+        ctx.fillStyle = darkColor;
+        ctx.font = 'bold 10px monospace';
+        ctx.fillText('QR', x + size / 3, y + size / 2);
+        return;
+      }
+      try {
+        const qr = window.qrcode(0, 'M');
+        qr.addData(text);
+        qr.make();
+        const count = qr.getModuleCount();
+        const pad = Math.max(2, Math.floor(size * 0.06));
+        const cell = (size - pad * 2) / count;
+        ctx.fillStyle = darkColor;
+        for (let r = 0; r < count; r++) {
+          for (let c = 0; c < count; c++) {
+            if (qr.isDark(r, c)) {
+              ctx.fillRect(
+                x + pad + c * cell,
+                y + pad + r * cell,
+                Math.ceil(cell),
+                Math.ceil(cell)
+              );
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
+    function renderLiveCardQr(code) {
+      const qrCanvas = document.getElementById('mc-preview-qr');
+      if (!qrCanvas) return;
+      const ctx = qrCanvas.getContext('2d');
+      drawQrOnCanvas(ctx, getVerifyUrlForCode(code), 0, 0, qrCanvas.width, '#0f172a', '#ffffff');
+    }
+
+    function startVerifyLiveClock() {
+      if (verifyClockInterval) clearInterval(verifyClockInterval);
+      const tick = () => {
+        const el = document.getElementById('verify-live-clock');
+        if (!el) return;
+        el.textContent = new Date().toLocaleString('tr-TR', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+      };
+      tick();
+      verifyClockInterval = setInterval(tick, 1000);
+    }
+
+    function renderVerifyResult(status, member, rawCode, note = '') {
+      const box = document.getElementById('verify-result-box');
+      if (!box) return;
+      box.classList.remove('hidden');
+
+      if (status === 'loading') {
+        box.innerHTML = `
+          <div class="rounded-3xl bg-white dark:bg-slate-900 border border-turq-200 dark:border-slate-800 p-8 text-center space-y-3 shadow-sm">
+            <div class="w-10 h-10 mx-auto rounded-full border-4 border-turq-200 border-t-turq-600 animate-spin"></div>
+            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">${escapeAttr(rawCode)} kodu kulüp veri tabanından sorgulanıyor...</p>
+          </div>
+        `;
+        return;
+      }
+
+      if (status === 'valid' && member) {
+        const boardInfo = findBoardMemberByName(member.name);
+        const isBoard = Boolean(boardInfo) || member.theme === 'board_black_gold';
+        box.innerHTML = `
+          <div class="rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-500 shadow-lg overflow-hidden">
+            <!-- Yeşil Onay Bandı -->
+            <div class="bg-emerald-600 text-white px-6 py-5 text-center space-y-1.5">
+              <div class="w-14 h-14 mx-auto rounded-full bg-white/20 flex items-center justify-center">
+                <i data-lucide="check-circle-2" class="w-9 h-9 text-white"></i>
+              </div>
+              <h3 class="text-xl sm:text-2xl font-extrabold tracking-tight">GEÇERLİ KULÜP ÜYESİ</h3>
+              <p class="text-xs sm:text-sm font-semibold text-emerald-100">Üsküdar Üniversitesi Gençlik Kulübü · Kampanya / İndirim Uygulanabilir</p>
+            </div>
+
+            <!-- Üye Bilgileri -->
+            <div class="p-6 space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold">2026–2027 Aktif Üyelik</span>
+                ${isBoard ? `<span class="px-3 py-1 rounded-full bg-zinc-950 text-amber-300 border border-amber-400/60 text-xs font-bold">★ ${escapeAttr(boardInfo ? boardInfo.role : 'Yönetim Kurulu')}</span>` : ''}
+              </div>
+
+              <div class="grid sm:grid-cols-2 gap-3 text-sm">
+                <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700">
+                  <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Ad Soyad</span>
+                  <span class="block font-extrabold text-slate-900 dark:text-white text-base mt-0.5">${escapeAttr(member.name)}</span>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700">
+                  <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Üye Kodu</span>
+                  <span class="block font-mono font-extrabold text-emerald-700 dark:text-emerald-400 text-base mt-0.5">${escapeAttr(member.code)}</span>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700">
+                  <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Fakülte / Bölüm</span>
+                  <span class="block font-bold text-slate-800 dark:text-slate-100 mt-0.5">${escapeAttr(member.faculty || '—')}</span>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700">
+                  <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Öğrenci / Sicil No</span>
+                  <span class="block font-mono font-bold text-slate-800 dark:text-slate-100 mt-0.5">${escapeAttr(member.studentNo || '—')}</span>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700">
+                  <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Departman</span>
+                  <span class="block font-bold text-slate-800 dark:text-slate-100 mt-0.5">${escapeAttr(member.dept || '—')}</span>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700">
+                  <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Kayıt Tarihi</span>
+                  <span class="block font-bold text-slate-800 dark:text-slate-100 mt-0.5">${escapeAttr(member.createdAt || '—')}</span>
+                </div>
+              </div>
+
+              <!-- Canlı Saat (Sahte Ekran Görüntüsü Önleme) -->
+              <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span class="inline-flex items-center gap-2 font-bold text-emerald-700 dark:text-emerald-400">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Canlı Doğrulama Aktif</span>
+                </span>
+                <span id="verify-live-clock" class="font-mono font-bold text-slate-600 dark:text-slate-300"></span>
+              </div>
+              ${note ? `<p class="text-[11px] text-amber-600 dark:text-amber-400">${escapeAttr(note)}</p>` : ''}
+            </div>
+          </div>
+        `;
+        if (window.lucide) window.lucide.createIcons();
+        startVerifyLiveClock();
+        return;
+      }
+
+      // Geçersiz kart
+      box.innerHTML = `
+        <div class="rounded-3xl bg-white dark:bg-slate-900 border-2 border-rose-500 shadow-lg overflow-hidden">
+          <div class="bg-rose-600 text-white px-6 py-5 text-center space-y-1.5">
+            <div class="w-14 h-14 mx-auto rounded-full bg-white/20 flex items-center justify-center">
+              <i data-lucide="x-circle" class="w-9 h-9 text-white"></i>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-extrabold tracking-tight">GEÇERSİZ ÜYE KODU</h3>
+            <p class="text-xs sm:text-sm font-semibold text-rose-100">Bu koda ait aktif kulüp kaydı bulunamadı.</p>
+          </div>
+          <div class="p-6 text-center space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+            <p>Sorgulanan kod: <strong class="font-mono text-rose-600 dark:text-rose-400">${escapeAttr(rawCode)}</strong></p>
+            <p>Kart sahte olabilir veya üyelik listeden kaldırılmış olabilir. İndirim uygulanmamalıdır.</p>
+            ${note ? `<p class="text-[11px] text-amber-600 dark:text-amber-400 pt-1">${escapeAttr(note)}</p>` : ''}
+          </div>
+        </div>
+      `;
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    async function verifyMemberCode(rawCode) {
+      const code = String(rawCode || '').trim().toUpperCase();
+      if (!code) return;
+      const inputEl = document.getElementById('verify-code-input');
+      if (inputEl) inputEl.value = code;
+
+      renderVerifyResult('loading', null, code);
+
+      // 1. Önce merkezi Google Sheets üzerinden canlı doğrula
+      if (MEMBER_SHEETS_WEBHOOK_URL) {
+        try {
+          const url = MEMBER_SHEETS_WEBHOOK_URL + '?verify=' + encodeURIComponent(code) + '&t=' + Date.now();
+          const res = await fetch(url, { method: 'GET', redirect: 'follow' });
+          const data = await res.json();
+          if (data && typeof data.valid === 'boolean') {
+            if (data.valid && data.member) {
+              renderVerifyResult('valid', data.member, code);
+            } else {
+              renderVerifyResult('invalid', null, code);
+            }
+            return;
+          }
+        } catch (err) {
+          // Ağ hatası veya Apps Script henüz verify desteklemiyorsa yerel yedeğe bak
+        }
+      }
+
+      // 2. Yedek: aynı cihazdaki localStorage kaydı
+      const localMatch = loadMemberRecords().find(r => String(r.code || '').toUpperCase() === code);
+      if (localMatch) {
+        renderVerifyResult('valid', localMatch, code, 'Not: Merkezi doğrulama yanıt vermediği için cihaz kaydıyla doğrulandı (Apps Script kodunu güncellediğinizden emin olun).');
+      } else {
+        renderVerifyResult('invalid', null, code, 'Not: Merkezi tabloya ulaşılamadıysa Apps Script kodunuzda verify desteğinin güncel olduğundan emin olun.');
+      }
+    }
+
+    function handleUrlHashRouting() {
+      const hash = window.location.hash || '';
+      const match = hash.match(/^#dogrula\/([^/?#]+)/i);
+      if (match && match[1]) {
+        const code = decodeURIComponent(match[1]).trim().toUpperCase();
+        const splash = document.getElementById('splash-screen');
+        if (splash) splash.classList.add('splash-hide');
+        switchPage('dogrula');
+        verifyMemberCode(code);
+        return true;
+      }
+      return false;
+    }
+
     function updateCardLivePreview() {
       const name = (document.getElementById('mc-name')?.value || '').trim() || 'Ad Soyad';
       const email = (document.getElementById('mc-email')?.value || '').trim().toLowerCase() || 'ornek@st.uskudar.edu.tr';
@@ -2362,6 +2631,8 @@
       if (wmColorEl) {
         wmColorEl.style.color = isBoardVip ? '#f5d061' : '#ffffff';
       }
+      const currentCodeText = (activeGeneratedMember && activeGeneratedMember.code) ? activeGeneratedMember.code : 'UUGK-26-ORNEK';
+      renderLiveCardQr(currentCodeText);
 
       // E-posta anlık doğrulama rozeti
       const rawEmail = (document.getElementById('mc-email')?.value || '').trim();
@@ -2618,7 +2889,7 @@
         ctx.lineTo(1132, 575);
         ctx.stroke();
 
-        // Alt Meta
+        // Alt Meta + Doğrulama QR Kodu
         ctx.fillStyle = theme.textMuted;
         ctx.font = '700 18px Inter, Arial, sans-serif';
         ctx.fillText('ÜYE KODU', 68, 622);
@@ -2626,14 +2897,23 @@
         ctx.font = '700 30px monospace';
         ctx.fillText(member.code, 68, 665);
 
-        ctx.textAlign = 'right';
         ctx.fillStyle = theme.textMuted;
         ctx.font = '700 18px Inter, Arial, sans-serif';
-        ctx.fillText('ÖĞRENCİ / SİCİL NO', 1132, 622);
+        ctx.fillText('ÖĞRENCİ / SİCİL NO', 460, 622);
         ctx.fillStyle = theme.textPrimary;
         ctx.font = '700 30px monospace';
-        ctx.fillText(member.studentNo || '—', 1132, 665);
-        ctx.textAlign = 'left';
+        ctx.fillText(member.studentNo || '—', 460, 665);
+
+        // Sağ Alt Köşe Doğrulama QR Kodu (Beyaz Çerçeveli)
+        const qrBoxSize = 136;
+        const qrBoxX = 1132 - qrBoxSize;
+        const qrBoxY = 588;
+        ctx.save();
+        drawRoundedRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 16);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        drawQrOnCanvas(ctx, getVerifyUrlForCode(member.code), qrBoxX + 8, qrBoxY + 8, qrBoxSize - 16, '#0f172a', '#ffffff');
+        ctx.restore();
 
         // Okul numarası güvenlik filigranı (PNG üzerine hafif çapraz katman)
         const wmLabel = (member.studentNo && member.studentNo.trim()) ? member.studentNo.trim() : member.code;
@@ -2700,8 +2980,18 @@
       renderNews();
       renderAnnouncements();
       renderTeam44();
-      switchPage('anasayfa');
+      if (!handleUrlHashRouting()) {
+        switchPage('anasayfa');
+      }
       initFooterMap();
+      window.addEventListener('hashchange', handleUrlHashRouting);
+
+      document.getElementById('verify-member-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const code = document.getElementById('verify-code-input').value.trim().toUpperCase();
+        if (!code) return;
+        verifyMemberCode(code);
+      });
 
       // Theme toggle
       document.getElementById('theme-toggle-btn').addEventListener('click', () => {
@@ -3021,6 +3311,7 @@
         saveMemberRecords(records);
         activeGeneratedMember = memberObj;
         document.getElementById('mc-preview-code').textContent = memberObj.code;
+        renderLiveCardQr(memberObj.code);
 
         const dlBtn = document.getElementById('mc-download-btn');
         dlBtn.disabled = false;
