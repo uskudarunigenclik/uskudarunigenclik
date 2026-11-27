@@ -204,7 +204,6 @@
           <button type="button" data-page-target="duyurular" class="nav-page-btn px-3 py-2 rounded-lg transition">Duyurular</button>
           <button type="button" data-page-target="kadromuz" class="nav-page-btn px-3 py-2 rounded-lg transition">Kadromuz</button>
           <button type="button" data-page-target="uyekarti" class="nav-page-btn px-3 py-2 rounded-lg transition">Üye Kartı</button>
-          <button type="button" data-page-target="dogrula" class="nav-page-btn px-3 py-2 rounded-lg transition">Üye Doğrula</button>
         </nav>
 
         <!-- Right Controls: Join + Theme Toggle (En Sağ Üstte) + Mobile Menu -->
@@ -241,7 +240,6 @@
           <button type="button" data-page-target="duyurular" class="nav-page-btn mobile-nav-link text-left px-3 py-2 rounded-lg">Duyurular</button>
           <button type="button" data-page-target="kadromuz" class="nav-page-btn mobile-nav-link text-left px-3 py-2 rounded-lg">Kadromuz</button>
           <button type="button" data-page-target="uyekarti" class="nav-page-btn mobile-nav-link text-left px-3 py-2 rounded-lg">Üye Kartı</button>
-          <button type="button" data-page-target="dogrula" class="nav-page-btn mobile-nav-link text-left px-3 py-2 rounded-lg">Üye Doğrula</button>
           <a id="open-join-mobile-btn" href="https://e-sks.uskudar.edu.tr/auth/login" target="_blank" rel="noopener noreferrer" class="mt-2 px-3 py-2 rounded-xl turq-gradient text-white text-xs font-semibold text-center block">Kulübe Katıl</a>
         </div>
       </div>
@@ -903,8 +901,8 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label for="mc-student-no" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">Öğrenci / Sicil No</label>
-                <input id="mc-student-no" type="text" maxlength="20" placeholder="Örn. 230101045" class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-turq-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-turq-400" />
+                <label for="mc-student-no" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">Öğrenci / Sicil No *</label>
+                <input id="mc-student-no" type="text" required maxlength="20" placeholder="Örn. 230101045" class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-turq-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-turq-400" />
               </div>
               <div>
                 <label for="mc-dept" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">Departman Tercihi *</label>
@@ -934,8 +932,11 @@
               </div>
             </div>
 
+            <!-- Üyelik Doğrulama Uyarı Kutusu -->
+            <div id="mc-eligibility-alert" class="hidden rounded-2xl p-4 text-xs leading-relaxed space-y-2.5"></div>
+
             <div class="pt-2 flex flex-wrap gap-3">
-              <button type="submit" class="flex-1 min-w-[180px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl turq-gradient text-white text-sm font-bold shadow-sm hover:opacity-95 transition">
+              <button id="mc-submit-btn" type="submit" class="flex-1 min-w-[180px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl turq-gradient text-white text-sm font-bold shadow-sm hover:opacity-95 transition">
                 <i data-lucide="badge-check" class="w-4 h-4"></i>
                 <span>Kartı Oluştur &amp; Kaydet</span>
               </button>
@@ -3265,8 +3266,43 @@
         card3d.style.transform = 'rotateX(0deg) rotateY(0deg)';
       });
 
-      // Kart Oluştur & Kaydet Formu (Sadece @uskudar.edu.tr / @st.uskudar.edu.tr)
-      document.getElementById('member-card-form').addEventListener('submit', (e) => {
+      function showEligibilityAlert(type, customMsg) {
+        const box = document.getElementById('mc-eligibility-alert');
+        if (!box) return;
+        if (!type) {
+          box.classList.add('hidden');
+          box.innerHTML = '';
+          return;
+        }
+        box.classList.remove('hidden');
+        if (type === 'mismatch') {
+          box.className = 'rounded-2xl p-4 text-xs leading-relaxed space-y-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200';
+          box.innerHTML = `
+            <p class="font-extrabold text-sm">İsim ve Öğrenci Numarası Uyuşmuyor</p>
+            <p>${escapeAttr(customMsg || 'Girdiğiniz Ad Soyad ile Öğrenci Numarası kulüp üye listemizdeki kayıtla eşleşmiyor. Lütfen bilgilerinizi kontrol edip tekrar deneyin.')}</p>
+          `;
+        } else if (type === 'not_found') {
+          box.className = 'rounded-2xl p-4 text-xs leading-relaxed space-y-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200';
+          box.innerHTML = `
+            <p class="font-extrabold text-sm">Kulüp Kaydınız Gözükmüyor</p>
+            <p>${escapeAttr(customMsg || 'Girdiğiniz isim veya öğrenci numarası kulüp kayıtlarımızda bulunamadı. Hemen kulübümüze kaydolabilir veya zaten üyeyseniz kulüp yöneticileri ile iletişime geçebilirsiniz.')}</p>
+            <div class="flex flex-wrap gap-2 pt-1">
+              <a href="${JOIN_CLUB_URL}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl turq-gradient text-white font-bold text-xs shadow-xs hover:opacity-95 transition">
+                <span>Kulübe Kaydol</span>
+              </a>
+              <a href="${CLUB_INSTAGRAM.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-rose-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold text-xs hover:bg-rose-50 transition">
+                <span>Yöneticilerle İletişime Geç</span>
+              </a>
+            </div>
+          `;
+        } else if (type === 'error') {
+          box.className = 'rounded-2xl p-4 text-xs leading-relaxed space-y-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200';
+          box.innerHTML = `<p class="font-bold">${escapeAttr(customMsg || 'Üyelik doğrulama servisine ulaşılamadı. Lütfen biraz sonra tekrar deneyin.')}</p>`;
+        }
+      }
+
+      // Kart Oluştur & Kaydet Formu (Üsküdar E-posta + Google Sheets "Uyeler" İsim & Numara Eşleşme Kontrolü)
+      document.getElementById('member-card-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('mc-name').value.trim();
         const email = document.getElementById('mc-email').value.trim().toLowerCase();
@@ -3274,9 +3310,12 @@
         const faculty = document.getElementById('mc-faculty').value.trim();
         const dept = document.getElementById('mc-dept').value;
         const errEl = document.getElementById('mc-email-error');
+        const submitBtn = document.getElementById('mc-submit-btn');
 
-        if (!name || !faculty) {
-          showToast('Lütfen Ad Soyad ve Fakülte / Bölüm alanlarını doldurun.');
+        showEligibilityAlert(null);
+
+        if (!name || !studentNo || !faculty) {
+          showToast('Lütfen Ad Soyad, Öğrenci No ve Fakülte / Bölüm alanlarını eksiksiz doldurun.');
           return;
         }
         if (!isValidUskudarEmail(email)) {
@@ -3286,6 +3325,41 @@
           return;
         }
         errEl.classList.add('hidden');
+
+        // Merkezi Google Sheets "Uyeler" sekmesinden İsim + Öğrenci No doğrulaması
+        if (MEMBER_SHEETS_WEBHOOK_URL) {
+          const origHtml = submitBtn.innerHTML;
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<span>Üyelik Kontrol Ediliyor...</span>';
+          try {
+            const checkUrl = MEMBER_SHEETS_WEBHOOK_URL + '?checkMember=1&name=' + encodeURIComponent(name) + '&studentNo=' + encodeURIComponent(studentNo) + '&t=' + Date.now();
+            const res = await fetch(checkUrl, { method: 'GET', redirect: 'follow' });
+            const checkData = await res.json();
+            if (!checkData || checkData.status !== 'ok') {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = origHtml;
+              if (window.lucide) window.lucide.createIcons();
+              if (checkData && checkData.status === 'mismatch') {
+                showEligibilityAlert('mismatch', checkData.message);
+                showToast('İsim ve öğrenci numarası uyuşmuyor.');
+              } else {
+                showEligibilityAlert('not_found', checkData && checkData.message);
+                showToast('Kulüp kaydınız gözükmüyor.');
+              }
+              return;
+            }
+          } catch (err) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = origHtml;
+            if (window.lucide) window.lucide.createIcons();
+            showEligibilityAlert('error', 'Üyelik doğrulama servisine şu an ulaşılamıyor. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.');
+            showToast('Üyelik kontrolü yapılamadı.');
+            return;
+          }
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = origHtml;
+          if (window.lucide) window.lucide.createIcons();
+        }
 
         const records = loadMemberRecords();
         const existingIdx = records.findIndex(r => r.email === email);
@@ -3298,14 +3372,14 @@
             name, studentNo, faculty, dept, theme: selectedCardTheme, createdAt: nowStr
           };
           records[existingIdx] = memberObj;
-          showToast('Mevcut kaydınız güncellendi ve kartınız hazır!');
+          showToast('Üyeliğiniz doğrulandı, kartınız güncellendi!');
         } else {
           memberObj = {
             code: generateMemberCode(records),
             name, email, studentNo, faculty, dept, theme: selectedCardTheme, createdAt: nowStr
           };
           records.unshift(memberObj);
-          showToast('Dijital üye kartınız oluşturuldu ve listeye kaydedildi!');
+          showToast('Üyeliğiniz doğrulandı! Dijital üye kartınız hazır.');
         }
 
         saveMemberRecords(records);
